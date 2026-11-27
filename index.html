@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>La Carta de los Gnomos</title>
+<title>Mi Carta de Regalos</title>
 <meta name="description" content="Mi lista de regalos de Navidad, vigilada por gnomos. Ordénala por precio o por categoría.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +22,7 @@
     --pine:#5fc08c; --berry:#ff6b84; --gold:#f2c14e; --line:#2a4536; --chip:#22392c; color-scheme:dark; }
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html,body{margin:0}
 body{background:var(--bg); color:var(--fg); font:16px/1.5 var(--body);
   padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
@@ -78,6 +79,24 @@ main{display:grid; gap:34px; padding-top:26px}
 .links a:hover{border-color:var(--pine)}
 .links a.main{background:var(--berry); border-color:var(--berry); color:#fff}
 
+.occs{display:flex; gap:8px; flex-wrap:wrap}
+.occ{font:800 15px var(--body); text-decoration:none; color:var(--fg); background:var(--card); border:2px solid var(--line); padding:8px 16px; border-radius:999px}
+.occ[aria-current="page"]{background:var(--berry); border-color:var(--berry); color:#fff}
+.hint{margin:0; font-weight:800; color:var(--berry)}
+.gnomeRow{height:auto !important; overflow:visible !important; flex-wrap:wrap; padding-top:64px; gap:4px 8px !important}
+.pal{position:relative; background:none; border:0; padding:0; cursor:pointer; line-height:0; border-radius:12px}
+.pal svg{transform-origin:50% 100%; animation:bob 2.6s ease-in-out infinite}
+.pal:nth-child(2n) svg{animation-delay:-.7s} .pal:nth-child(3n) svg{animation-delay:-1.4s}
+.pal.jump svg{animation:jump .6s ease-out}
+@keyframes jump{0%{transform:translateY(0)}35%{transform:translateY(-26px) rotate(-10deg)}70%{transform:translateY(0) rotate(6deg)}100%{transform:none}}
+.say{position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); width:max-content; max-width:210px; background:var(--card); color:var(--fg); border:2px solid var(--pine); border-radius:14px; padding:7px 10px; font:800 13px/1.3 var(--body); text-align:center; z-index:4; pointer-events:none; animation:pop .2s ease-out}
+@keyframes pop{from{transform:translateX(-50%) scale(.6); opacity:0}}
+.pal:first-child .say{left:0; transform:none} .pal:last-child .say{left:auto; right:0; transform:none}
+.pick{border:0; background:var(--gold); color:#2b2200; font-weight:800; padding:7px 14px; border-radius:999px}
+.card.picked{outline:4px solid var(--gold); outline-offset:3px; animation:wiggle .5s ease-in-out 3}
+.card.picked .tag::after{content:" · ¡ELEGIDO POR UN DUENDE!"}
+@keyframes wiggle{25%{transform:rotate(-1.5deg)}75%{transform:rotate(1.5deg)}}
+@media (prefers-reduced-motion: reduce){ .pal svg, .pal.jump svg, .card.picked{animation:none} }
 .hero{display:grid; grid-template-columns:1fr auto; gap:20px; align-items:end}
 .heroText{display:grid; gap:18px; min-width:0}
 .me{margin:0; width:210px; display:grid; gap:6px; justify-items:center}
@@ -108,12 +127,18 @@ footer{margin-top:44px; text-align:center; color:var(--muted); font-size:14px; d
 <header class="wrap">
  <div class="hero">
   <div class="heroText">
-  <div class="kicker">🎄 Navidad 2026 · Departamento Oficial de Gnomos y Duendes 🎅</div>
-  <h1>La Carta de <em>los Gnomos</em></h1>
-  <p class="lead">Querida familia: los gnomos y los duendecillos han revisado mi comportamiento este año y dicen que <b>"más o menos bien"</b>. Aquí tenéis mis deseos. Podéis ordenarlos por precio o por categoría. Los regalos hechos a mano cuentan el doble (lo dicen los duendes, no yo).</p>
+  <nav class="occs" aria-label="¿Para quién es la carta?">
+    <a class="occ" id="o-noel" href="#papa-noel">🎅 Papá Noel</a>
+    <a class="occ" id="o-reyes" href="#reyes">👑 Reyes Magos</a>
+    <a class="occ" id="o-cumple" href="#cumple">🎂 Mi cumpleaños</a>
+  </nav>
+  <div class="kicker" id="kicker"></div>
+  <h1 id="h1"></h1>
+  <p class="lead" id="lead"></p>
   </div>
-  <figure class="me"><div class="bubble">¡Hola, familia! Esta es mi lista. He sido buena… casi siempre 😇</div><div id="me"></div></figure>
+  <figure class="me"><div class="bubble" id="meBubble"></div><div id="me"></div></figure>
  </div>
+ <p class="hint">👆 Toca a los duendes (y a los demás). Tienen cosas que decirte.</p>
   <div class="gnomeRow" id="gnomeRow" aria-hidden="true"></div>
   <div class="stats" id="stats"></div>
 </header>
@@ -128,6 +153,7 @@ footer{margin-top:44px; text-align:center; color:var(--muted); font-size:14px; d
     </div>
     <span class="lbl">Ver</span>
     <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
+    <button class="pick" id="pick">🧝 ¡Duende, elige tú!</button>
   </div>
 </div>
 
@@ -149,6 +175,7 @@ const CATS = [
   {id:"lush",   n:"Baño y Lush", hue:"#f7dbee"},
   {id:"perfume",n:"Perfumes", hue:"#ece0f5"},
   {id:"ropa",   n:"Ropa y calzado", hue:"#e2ecd9"},
+  {id:"casa",   n:"Para la casa", hue:"#f5e6d3"},
   {id:"hp",     n:"Harry Potter", hue:"#f1ddc9"},
   {id:"tech",   n:"Tecnología", hue:"#dde3ea"}
 ];
@@ -160,7 +187,7 @@ const S = {
   primark:{n:"Primark", u:"https://www.primark.com/es-es"}, oysho:{n:"Oysho", u:"https://www.oysho.com/es/"},
   mm:{n:"MediaMarkt", u:"https://www.mediamarkt.es/"}, mi:{n:"Xiaomi Store", u:"https://www.mi.com/es/"},
   insta:{n:"Tienda Insta360", u:"https://store.insta360.com/"}, bmd:{n:"Blackmagic Design", u:"https://www.blackmagicdesign.com/es/products/davinciresolve/studio"},
-  zalando:{n:"Zalando", u:"https://www.zalando.es/"}, farm:{n:"Farmacias"}, merca:{n:"Mercadona"}, casa:{n:"Tu casa, con tus manos"}
+  zalando:{n:"Zalando", u:"https://www.zalando.es/"}, zh:{n:"Zara Home", u:"https://www.zarahome.com/es/"}, farm:{n:"Farmacias"}, merca:{n:"Mercadona"}, casa:{n:"Tu casa, con tus manos"}
 };
 // p = precio para ordenar (el mínimo del rango) · est = precio por confirmar
 const ITEMS = [
@@ -170,6 +197,8 @@ const ITEMS = [
  {n:"Una playlist hecha para mí", c:"carino", p:0, pl:"Gratis", art:"cassette", c1:"#1f5a3d", c2:"#f2c14e", w:["casa"], q:"Prohibido meter villancicos en bucle. Uno, como mucho."},
  {n:"Mascarillas de tela", c:"piel", p:2, pl:"desde 2 €", sub:"la unidad · también en packs", art:"sheetmask", c1:"#f4f8fb", c2:"#7fb3d5", w:["primor","druni","merca"], q:"Para asustar a la familia en el salón y, de paso, hidratarme."},
  {n:"Algo de la colección Harry Potter de Primark", c:"hp", p:5, pl:"5–25 €", sub:"pijama, taza, calcetines…", art:"wizard", c1:"#7f0909", c2:"#d4a017", w:["primark"], q:"Mi carta de Hogwarts no ha llegado, así que me conformo con Primark."},
+ {n:"Velas aromáticas (Mercadona o Zara Home)", c:"casa", p:3, pl:"3–20 €", sub:"Mercadona más barato, Zara Home más caro", art:"candle", c1:"#f3e3c3", c2:"#c22d48", w:["merca","zh"], q:"Para que mi cuarto huela a Navidad y no a calcetín."},
+ {n:"Perfume para el hogar de galletas – Zara Home", c:"casa", p:13, pl:"≈ 13–20 €", est:1, sub:"depende del tamaño", art:"diffuser", c1:"#e9c48f", c2:"#7b4a2b", w:["zh"], q:"Toda la casa oliendo a galletas y ni una caloría. Ciencia."},
  {n:"The Ordinary Niacinamide 10% + Zinc 1%", c:"piel", p:6, pl:"6 €", art:"dropper", c1:"#eae6dc", c2:"#222", w:["primor","sephora","druni"], q:"Para que mis poros dejen de tener vida social."},
  {n:"Vaseline Gluta-Hya Dewy Radiance", c:"piel", p:8, pl:"8 €", art:"pump", c1:"#f6c7b8", c2:"#c2577a", w:["primor","amazon"], q:"Brillar como el árbol de Navidad, pero sin enchufarme."},
  {n:"Camiseta ligerísima escote barco – Tezenis", c:"ropa", p:11.99, pl:"11,99 €", art:"tee", c1:"#f6efe6", c2:"#b9a998", w:["tezenis"], q:"Ligerísima, como mi fuerza de voluntad delante de los turrones."},
@@ -226,6 +255,8 @@ function art(t, a, b, lace){
   case "projector": return s(`<path d="M30 66 L2 40 L2 92 Z" fill="#f2c14e" opacity=".35"/><rect x="24" y="46" width="80" height="42" rx="10" fill="${a}" stroke="#0002"/><circle cx="42" cy="67" r="13" fill="${b}"/><circle cx="42" cy="67" r="7" fill="#7ab8d9"/><rect x="66" y="56" width="28" height="4" rx="2" fill="#0002"/><rect x="66" y="64" width="28" height="4" rx="2" fill="#0002"/><rect x="66" y="72" width="28" height="4" rx="2" fill="#0002"/><rect x="34" y="88" width="10" height="8" fill="${b}"/><rect x="86" y="88" width="10" height="8" fill="${b}"/>`);
   case "software": return s(`<rect x="12" y="24" width="96" height="74" rx="7" fill="${a}"/><circle cx="22" cy="32" r="2.5" fill="#e94e4e"/><circle cx="30" cy="32" r="2.5" fill="#f5c542"/><circle cx="38" cy="32" r="2.5" fill="#5fc08c"/><rect x="20" y="40" width="80" height="28" rx="3" fill="#353a45"/><path d="M52 46 L68 54 L52 62Z" fill="#fff"/><rect x="20" y="74" width="34" height="6" rx="2" fill="#4ea4e9"/><rect x="56" y="74" width="26" height="6" rx="2" fill="${b}"/><rect x="24" y="84" width="46" height="6" rx="2" fill="#f5c542"/><rect x="72" y="84" width="22" height="6" rx="2" fill="#5fc08c"/><rect x="62" y="70" width="2" height="24" fill="#fff"/>`);
   case "mic": return s(`<rect x="46" y="14" width="28" height="48" rx="14" fill="${a}"/>${[24,32,40,48].map(y=>`<path d="M50 ${y} H70" stroke="${b}" stroke-width="2"/>`).join("")}<path d="M38 46 Q38 76 60 76 Q82 76 82 46" fill="none" stroke="${b}" stroke-width="4"/><rect x="57" y="76" width="6" height="22" fill="${b}"/><rect x="40" y="98" width="40" height="7" rx="3" fill="${a}"/>`);
+  case "candle": return s(`<rect x="34" y="50" width="52" height="54" rx="8" fill="${a}" stroke="#0002"/><ellipse cx="60" cy="50" rx="26" ry="6" fill="#fff8ea"/><rect x="34" y="70" width="52" height="16" fill="${b}"/><rect x="59" y="34" width="2" height="14" fill="#333"/><path d="M60 16 q9 12 0 20 q-9 -8 0 -20" fill="#ffb02e"/><path d="M60 24 q4 6 0 10 q-4 -4 0 -10" fill="#fff3b0"/>`);
+  case "diffuser": return s(`<path d="M50 20 L56 64 M60 16 L60 64 M70 20 L64 64" stroke="#5a3b2a" stroke-width="2.5"/><rect x="40" y="62" width="40" height="42" rx="10" fill="${a}" opacity=".9" stroke="#0002"/><rect x="52" y="56" width="16" height="8" fill="${b}"/><rect x="46" y="76" width="28" height="14" rx="2" fill="#fff" opacity=".85"/><circle cx="26" cy="48" r="9" fill="#c98a4b"/><circle cx="23" cy="45" r="1.6" fill="#5a3b2a"/><circle cx="29" cy="50" r="1.6" fill="#5a3b2a"/><circle cx="94" cy="36" r="8" fill="#c98a4b"/><circle cx="92" cy="34" r="1.5" fill="#5a3b2a"/><circle cx="97" cy="38" r="1.5" fill="#5a3b2a"/>`);
   case "camera": return s(`<rect x="42" y="14" width="36" height="88" rx="12" fill="${a}"/><circle cx="60" cy="34" r="12" fill="#444"/><circle cx="60" cy="34" r="7" fill="${b}"/><circle cx="57" cy="31" r="2" fill="#fff" opacity=".8"/><rect x="48" y="54" width="24" height="28" rx="3" fill="#2f3a45"/><circle cx="60" cy="92" r="4" fill="#c22d48"/><path d="M84 40 l6-3 M84 50 h7 M84 60 l6 3" stroke="#f2c14e" stroke-width="2.5" stroke-linecap="round"/>`);
   }
   return s("");
@@ -262,7 +293,13 @@ function elf(suit="#2f9e5a", h=100, holding=""){
   ${holding}
   </svg>`;
 }
-const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mi avatar con gorro de Papá Noel y la lista de regalos">
+const HATS = {
+  noel:`<path d="M56 80 Q90 20 150 30 Q170 34 178 60 Q150 44 140 76Z" fill="#c22d48"/><rect x="52" y="70" width="96" height="16" rx="8" fill="#fff"/><circle cx="178" cy="62" r="10" fill="#fff"/>`,
+  reyes:`<path d="M60 84 L62 40 L81 62 L100 30 L119 62 L138 40 L140 84Z" fill="#f2c14e" stroke="#b8860b" stroke-width="2"/><circle cx="100" cy="30" r="5" fill="#f2c14e" stroke="#b8860b" stroke-width="2"/><circle cx="100" cy="66" r="6" fill="#c22d48"/><circle cx="78" cy="74" r="4" fill="#2f6db5"/><circle cx="122" cy="74" r="4" fill="#3fae6a"/>`,
+  cumple:`<path d="M72 80 L102 10 L128 78Z" fill="#7f3fa8"/><path d="M84 56 L118 52 M93 36 L112 34" stroke="#f2c14e" stroke-width="5"/><circle cx="102" cy="10" r="8" fill="#ff6b84"/>`
+};
+const avatarSvg = (k)=> avatar.replace("__HAT__", HATS[k]);
+const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mi avatar con la lista de regalos">
   <ellipse cx="100" cy="224" rx="70" ry="6" fill="#000" opacity=".12"/>
   <path d="M40 120 Q30 200 50 215 L150 215 Q170 200 160 120Z" fill="#5a3522"/>
   <path d="M58 170 Q100 150 142 170 L150 222 L50 222Z" fill="#c22d48"/>
@@ -275,8 +312,7 @@ const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" ro
   <path d="M78 103 q7 -5 14 0 M108 103 q7 -5 14 0" stroke="#3a2414" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   <circle cx="74" cy="128" r="7" fill="#f28b8b" opacity=".55"/><circle cx="126" cy="128" r="7" fill="#f28b8b" opacity=".55"/>
   <path d="M88 132 Q100 144 112 132" fill="#c22d48" stroke="#8a1c2f" stroke-width="2" stroke-linecap="round"/>
-  <path d="M56 80 Q90 20 150 30 Q170 34 178 60 Q150 44 140 76Z" fill="#c22d48"/>
-  <rect x="52" y="70" width="96" height="16" rx="8" fill="#fff"/><circle cx="178" cy="62" r="10" fill="#fff"/>
+  __HAT__
   <g transform="rotate(-8 150 190)"><rect x="128" y="150" width="46" height="62" rx="3" fill="#fffaf0" stroke="#0003"/>
   <path d="M136 164 H166 M136 174 H162 M136 184 H166 M136 194 H158" stroke="#c22d48" stroke-width="2.5"/>
   <text x="151" y="160" font-size="7" font-weight="800" text-anchor="middle" fill="#1f5a3d" font-family="sans-serif">MI LISTA</text></g>
@@ -284,12 +320,136 @@ const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" ro
 </svg>`;
 const hats = ["#c22d48","#1f5a3d","#2f6db5","#d9a521","#c22d48","#7f3fa8","#1f5a3d","#e2733a","#c22d48","#2f6db5","#1f5a3d","#d9a521"];
 const elfSuits = ["#2f9e5a","#1f7a48","#3fae6a"];
-document.getElementById("gnomeRow").innerHTML = hats.map((c,i)=>{
-  const hgt = 70+((i*37)%40), gift = i%3===0?present(i%2?"#2f6db5":"#c22d48"):"";
-  return i%2 ? elf(elfSuits[i%3], hgt, gift) : gnome(c, "#f4f1ec", hgt, gift);
-}).join("");
+
+function santa(h=110){
+  return `<svg viewBox="0 0 80 110" width="${h*0.73}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="40" cy="107" rx="28" ry="3" fill="#000" opacity=".12"/>
+  <rect x="14" y="58" width="52" height="46" rx="18" fill="#c22d48"/>
+  <rect x="38" y="58" width="4" height="46" fill="#fff"/>
+  <rect x="14" y="80" width="52" height="7" fill="#2b2b2b"/><rect x="34" y="78" width="12" height="11" rx="2" fill="none" stroke="#f2c14e" stroke-width="3"/>
+  <rect x="16" y="98" width="18" height="9" rx="4" fill="#2b2b2b"/><rect x="46" y="98" width="18" height="9" rx="4" fill="#2b2b2b"/>
+  <path d="M20 42 Q40 94 60 42Z" fill="#fff"/>
+  <circle cx="40" cy="38" r="14" fill="#f5c3a8"/>
+  <circle cx="34" cy="36" r="1.8" fill="#2b2b2b"/><circle cx="46" cy="36" r="1.8" fill="#2b2b2b"/>
+  <circle cx="40" cy="42" r="3.5" fill="#e8848a"/>
+  <path d="M30 46 Q35 42 40 46 Q45 42 50 46" fill="#fff" stroke="#ddd"/>
+  <path d="M24 30 Q40 2 62 14 Q72 20 70 32 Q60 22 56 30Z" fill="#c22d48"/>
+  <rect x="22" y="26" width="38" height="8" rx="4" fill="#fff"/><circle cx="70" cy="33" r="5" fill="#fff"/>
+  </svg>`;
+}
+function king(robe, skin, beard, crown, h=110, gift=""){
+  return `<svg viewBox="0 0 80 110" width="${h*0.73}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="40" cy="107" rx="28" ry="3" fill="#000" opacity=".12"/>
+  <path d="M10 104 Q16 60 40 56 Q64 60 70 104Z" fill="${robe}"/>
+  <path d="M34 58 L40 104 L46 58" fill="#f2c14e" opacity=".8"/>
+  <path d="M10 104 Q16 60 22 60 L18 104Z" fill="#000" opacity=".12"/>
+  <path d="M24 44 Q40 84 56 44Z" fill="${beard}"/>
+  <circle cx="40" cy="40" r="14" fill="${skin}"/>
+  <circle cx="34" cy="38" r="1.8" fill="#1b1b1b"/><circle cx="46" cy="38" r="1.8" fill="#1b1b1b"/>
+  <path d="M34 48 Q40 52 46 48" fill="none" stroke="${beard}" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 30 L24 10 L32 20 L40 6 L48 20 L56 10 L56 30Z" fill="${crown}" stroke="#b8860b" stroke-width="1.5"/>
+  <circle cx="40" cy="22" r="3" fill="#c22d48"/>
+  ${gift}
+  </svg>`;
+}
+const chest = `<rect x="50" y="72" width="20" height="14" rx="2" fill="#8a5a2b"/><rect x="50" y="72" width="20" height="5" fill="#f2c14e"/><circle cx="60" cy="80" r="2" fill="#f2c14e"/>`;
+function camel(h=100){
+  return `<svg viewBox="0 0 110 100" width="${h*1.1}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="55" cy="97" rx="40" ry="3" fill="#000" opacity=".12"/>
+  <path d="M22 64 Q20 40 38 40 Q46 22 56 40 Q64 26 74 42 Q84 46 82 62Z" fill="#c9965a"/>
+  <rect x="26" y="60" width="7" height="36" rx="3" fill="#b07e45"/><rect x="38" y="60" width="7" height="36" rx="3" fill="#b07e45"/>
+  <rect x="64" y="60" width="7" height="36" rx="3" fill="#b07e45"/><rect x="74" y="58" width="7" height="38" rx="3" fill="#b07e45"/>
+  <path d="M80 54 Q92 46 90 24 L98 22 Q104 24 104 32 L96 34 Q96 52 84 62Z" fill="#c9965a"/>
+  <circle cx="98" cy="27" r="1.8" fill="#2b2b2b"/><path d="M94 20 l3 -4" stroke="#b07e45" stroke-width="3" stroke-linecap="round"/>
+  <path d="M40 40 Q56 30 72 42 L70 50 Q56 44 42 50Z" fill="#7f3fa8"/><path d="M42 50 Q56 44 70 50" stroke="#f2c14e" stroke-width="2.5" fill="none"/>
+  <path d="M22 60 Q14 64 16 74" stroke="#b07e45" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+function cake(h=100){
+  return `<svg viewBox="0 0 90 100" width="${h*0.9}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="45" cy="97" rx="38" ry="3" fill="#000" opacity=".12"/>
+  <rect x="8" y="88" width="74" height="6" rx="3" fill="#ddd"/>
+  <rect x="14" y="62" width="62" height="28" rx="6" fill="#f7a8d0"/>
+  <path d="M14 66 q8 10 15 0 q8 10 16 0 q8 10 16 0 q8 10 15 0" fill="#fff"/>
+  <rect x="22" y="42" width="46" height="22" rx="5" fill="#fff4d6"/>
+  <path d="M22 46 q6 8 11 0 q6 8 12 0 q6 8 12 0 q6 8 11 0" fill="#c22d48"/>
+  ${[30,40,50,60].map((x,i)=>`<rect x="${x-2}" y="24" width="4" height="18" fill="${["#3f8fe0","#f2c14e","#3fae6a","#7f3fa8"][i]}"/><path d="M${x} 13 q4 6 0 10 q-4 -4 0 -10" fill="#ffb02e"/>`).join("")}
+  </svg>`;
+}
+function balloons(h=110){
+  return `<svg viewBox="0 0 80 110" width="${h*0.73}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M22 40 Q30 70 40 106 M56 34 Q48 70 40 106 M40 26 Q42 66 40 106" stroke="#999" fill="none"/>
+  <ellipse cx="22" cy="28" rx="15" ry="18" fill="#ff6b84"/><ellipse cx="58" cy="22" rx="15" ry="18" fill="#3f8fe0"/><ellipse cx="40" cy="16" rx="14" ry="16" fill="#f2c14e"/>
+  <ellipse cx="17" cy="22" rx="3" ry="5" fill="#fff" opacity=".5"/><ellipse cx="53" cy="16" rx="3" ry="5" fill="#fff" opacity=".5"/>
+  </svg>`;
+}
+function partyElf(h){ return elf("#7f3fa8", h, present("#3f8fe0")); }
+
+const SAY = {
+  elf:["¡Le he chivado a Papá Noel que has sido buenísima!","Yo envolví la cámara de 929 €. Pesa muchísimo.","Psst… lo más barato es una carta. Solo digo.","¡No me hagas cosquillas, que se me cae el gorro!","Llevo 300 años envolviendo y sigo sin saber doblar el papel.","Si compráis algo de Lush, dejadme olerlo primero.","¡Ho, ho, h…! Ay no, eso solo lo dice el jefe.","He visto la lista. Yo también quiero el proyector.","Mi trabajo es vigilar que nadie regale calcetines feos."],
+  gnome:["Soy un gnomo, no un duende. Hay una diferencia (yo soy más bajito).","Los gnomos no trabajamos en diciembre. Solo opinamos.","¿Has visto mi gorro? Es de edición limitada."],
+  santa:["¡Jo, jo, jo! Este año el trineo va lleno de CeraVe.","He revisado la lista dos veces. Sale cara, pero bonita.","Dejadme galletas, que la noche es larga.","Los renos piden que la cámara la traigan los Reyes."],
+  king:["Este año traemos oro, incienso y… Snow Fairy.","Melchor, Gaspar y Baltasar a su servicio, Majestad de la casa.","Dejad agua para los camellos y turrón para nosotros.","Un rey no regatea. Pero si hay descuento, mejor."],
+  camel:["Mmmfff. (Traducción: quiero zanahorias.)","Llevo 2.000 kilómetros. El proyector pesa.","¿Seguro que cabe todo esto en mi joroba?"],
+  cake:["¡Pide un deseo! O 31, que hay lista.","Soy la tarta. No me mires así.","¡Cumpleaños feliz! 🎶"],
+  balloons:["¡Pop! Era broma, sigo aquí.","¡Fiesta, fiesta!","Los globos también queremos regalo."]
+};
+const OCC = {
+  noel:{kicker:"🎄 Navidad · 25 de diciembre", h1:"Querido <em>Papá Noel</em>",
+    lead:"Este año me he portado <b>más o menos bien</b> (los duendes lo pueden confirmar). Aquí tienes mi carta. Familia: si Papá Noel va justo de presupuesto, podéis echarle una mano.",
+    me:"¡Hola, Papá Noel! He sido buena… casi siempre 😇",
+    row:[["elf",0],["gnome","#c22d48"],["elf",1],["santa"],["elf",2],["gnome","#2f6db5"],["elf",0],["gnome","#d9a521"],["elf",1]]},
+  reyes:{kicker:"👑 Reyes Magos · 6 de enero", h1:"Queridos <em>Reyes Magos</em>",
+    lead:"Sé que venís de muy lejos y que los camellos se cansan. Por eso os dejo la carta <b>ordenada por precio</b>, para que no tengáis que pensar mucho. Os dejaré turrón a vosotros y agua a los camellos.",
+    me:"¡Hola, Majestades! Os he dejado turrón 👑",
+    row:[["elf",0],["king","#7f3fa8","#f5c3a8","#f4f1ec"],["king","#1f5a3d","#f1c0a2","#7b4a2b"],["camel"],["king","#c22d48","#7a4a2b","#1b1b1b"],["elf",1],["gnome","#2f6db5"]]},
+  cumple:{kicker:"🎂 Mi cumpleaños", h1:"¡Es mi <em>cumpleaños</em>!",
+    lead:"Sí, para el cumple también hay carta. Cualquier regalo de aquí me hace ilusión, pero los <b>hechos a mano cuentan el doble</b>. Se aceptan tartas, globos y canciones desafinadas.",
+    me:"¡Es mi cumple! Soplo velas y pido regalos 🎂",
+    row:[["balloons"],["party"],["gnome","#7f3fa8"],["cake"],["party"],["elf",2],["balloons"]]}
+};
+let occ = "noel";
+function pal(spec, i){
+  const [k,a,b,c] = spec, hgt = 80+((i*29)%30);
+  let svg="", kind=k;
+  if (k==="elf") svg = elf(elfSuits[a], hgt, i%3===0?present(i%2?"#2f6db5":"#c22d48"):"");
+  else if (k==="gnome") svg = gnome(a,"#f4f1ec",hgt, i%2?present("#1f5a3d"):"");
+  else if (k==="santa") svg = santa(120);
+  else if (k==="king") svg = king(a,b,c,"#f2c14e",115, chest);
+  else if (k==="camel") svg = camel(100);
+  else if (k==="cake") svg = cake(95);
+  else if (k==="balloons") svg = balloons(115);
+  else if (k==="party"){ svg = partyElf(hgt); kind="elf"; }
+  return `<button class="pal" type="button" data-kind="${kind}" aria-label="Personaje: toca para que hable">${svg}</button>`;
+}
+function setOcc(k){
+  occ = OCC[k] ? k : "noel";
+  const o = OCC[occ];
+  document.getElementById("kicker").textContent = o.kicker;
+  document.getElementById("h1").innerHTML = o.h1;
+  document.getElementById("lead").innerHTML = o.lead;
+  document.getElementById("meBubble").textContent = o.me;
+  document.getElementById("me").innerHTML = avatarSvg(occ);
+  document.getElementById("gnomeRow").innerHTML = o.row.map(pal).join("");
+  document.querySelectorAll(".occ").forEach(a=>a.setAttribute("aria-current", a.id==="o-"+occ ? "page" : "false"));
+  document.querySelector(".lights").hidden = occ==="cumple";
+}
+const hashToOcc = {"#papa-noel":"noel","#reyes":"reyes","#cumple":"cumple"};
+const fromHash = ()=> setOcc(hashToOcc[location.hash] || "noel");
+addEventListener("hashchange", fromHash);
+fromHash();
+
+document.getElementById("gnomeRow").addEventListener("click", e=>{
+  const b = e.target.closest(".pal"); if (!b) return;
+  const list = SAY[b.dataset.kind] || SAY.elf;
+  document.querySelectorAll(".pal .say").forEach(s=>s.remove());
+  const s = document.createElement("span"); s.className="say";
+  s.textContent = list[Math.floor(Math.random()*list.length)];
+  b.appendChild(s);
+  b.classList.remove("jump"); void b.offsetWidth; b.classList.add("jump");
+  clearTimeout(b._t); b._t = setTimeout(()=>s.remove(), 3500);
+});
 document.getElementById("footGnome").innerHTML = gnome("#c22d48","#f4f1ec",80,present("#1f5a3d")) + elf("#2f9e5a",80,present("#c22d48"));
-document.getElementById("me").innerHTML = avatar;
 
 /* ---------- render ---------- */
 let sort = "asc", cat = "all";
@@ -309,7 +469,7 @@ function card(it){
   if (it.p>0) links.push(`<a href="${gq(it.n)}" target="_blank" rel="noopener">Buscar en Google</a>`);
   const hatColors = ["#c22d48","#1f5a3d","#2f6db5","#d9a521"];
   const mini = (it.n.length%2 ? elf(elfSuits[it.n.length%3],60) : gnome(hatColors[it.n.length%4],"#f4f1ec",60)).replace("<svg ","<svg class=\"mini\" ");
-  return `<article class="card">
+  return `<article class="card" data-i="${ITEMS.indexOf(it)}">
     <div class="pic" style="background:${c.hue}">
       <span class="tag">${esc(c.n)}</span>${art(it.art,it.c1,it.c2,it.lace)}${mini}
     </div>
@@ -353,6 +513,15 @@ document.getElementById("chips").addEventListener("click",e=>{
   const b=e.target.closest("[data-cat]"); if(!b) return;
   cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed", x===b)); render();
 });
+document.getElementById("pick").addEventListener("click",()=>{
+  cat="all"; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed", x.dataset.cat==="all"));
+  render();
+  const i = Math.floor(Math.random()*ITEMS.length);
+  const el = document.querySelector(`.card[data-i="${i}"]`);
+  if (!el) return;
+  el.classList.add("picked");
+  el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"});
+});
 const total = ITEMS.length, free = ITEMS.filter(i=>i.p===0).length;
 document.getElementById("stats").innerHTML =
   `<div class="stat"><b>${total}</b> deseos</div><div class="stat"><b>${free}</b> gratis y hechos con cariño</div><div class="stat"><b>${ITEMS.filter(i=>i.p>0&&i.p<15).length}</b> por menos de 15 €</div><div class="stat">El más caro: <b>929 €</b> (sin presión)</div>`;
@@ -368,9 +537,11 @@ render();
   for (let i=0;i<70;i++) flakes.push({x:Math.random()*W, y:Math.random()*H, r:1+Math.random()*2.5, v:.3+Math.random()*.8, d:Math.random()*6});
   (function tick(){
     x.clearRect(0,0,W,H);
-    x.fillStyle = matchMedia("(prefers-color-scheme: dark)").matches ? "rgba(255,255,255,.7)" : "rgba(150,180,200,.55)";
-    for (const f of flakes){ f.y+=f.v; f.d+=.01; f.x+=Math.sin(f.d)*.4; if (f.y>H){f.y=-5; f.x=Math.random()*W;}
-      x.beginPath(); x.arc(f.x,f.y,f.r,0,7); x.fill(); }
+    const snowCol = matchMedia("(prefers-color-scheme: dark)").matches ? "rgba(255,255,255,.7)" : "rgba(150,180,200,.55)";
+    const conf = ["#ff6b84","#3f8fe0","#f2c14e","#3fae6a","#7f3fa8"];
+    flakes.forEach((f,i)=>{ f.y+=f.v; f.d+=.01; f.x+=Math.sin(f.d)*.4; if (f.y>H){f.y=-5; f.x=Math.random()*W;}
+      if (occ==="cumple"){ x.fillStyle = conf[i%5]; x.fillRect(f.x, f.y, f.r*2.2, f.r*1.2); }
+      else { x.fillStyle = snowCol; x.beginPath(); x.arc(f.x,f.y,f.r,0,7); x.fill(); } });
     requestAnimationFrame(tick);
   })();
 })();
