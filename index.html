@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Carta de los Gnomos</title>
+<meta name="description" content="Mi lista de regalos de Navidad, vigilada por gnomos. Ordénala por precio o por categoría.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Nunito:ital,wght@0,400;0,600;0,800;1,600&display=swap">
+<style>
+/* Layout: cabecera con fila de gnomos, barra de controles pegajosa, rejilla de tarjetas agrupadas por precio o categoría */
+:root{
+  --bg:#eef4ef; --bg2:#e2ece4; --card:#ffffff; --fg:#1d2b22; --muted:#5b6d61;
+  --pine:#1f5a3d; --berry:#c22d48; --gold:#d9a521; --line:#cfdcd2; --chip:#e3ede6;
+  --display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1d16; --bg2:#14271d; --card:#1a2f24; --fg:#eaf3ec; --muted:#a3b8aa;
+    --pine:#5fc08c; --berry:#ff6b84; --gold:#f2c14e; --line:#2a4536; --chip:#22392c; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg); color:var(--fg); font:16px/1.5 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-block:0 48px; overflow-x:hidden}
+.wrap{max-width:1180px; margin:0 auto}
+#snow{position:fixed; inset:0; pointer-events:none; z-index:0}
+header,main,.bar,footer{position:relative; z-index:1}
+
+header{padding-block:40px 8px; display:grid; gap:18px; text-align:left}
+.kicker{font:800 13px/1 var(--body); letter-spacing:.14em; text-transform:uppercase; color:var(--berry)}
+h1{font:800 clamp(38px, 7vw, 76px)/.95 var(--display); margin:0; letter-spacing:-.02em; text-wrap:balance}
+h1 em{font-style:normal; color:var(--pine)}
+.lead{max-width:62ch; margin:0; font-size:18px; color:var(--muted)}
+.lead b{color:var(--fg)}
+.gnomeRow{display:flex; gap:6px; align-items:flex-end; overflow:hidden; height:110px; margin-top:4px}
+.gnomeRow svg{flex:0 0 auto; transform-origin:50% 100%; animation:bob 2.6s ease-in-out infinite}
+.gnomeRow svg:nth-child(2n){animation-delay:-.7s} .gnomeRow svg:nth-child(3n){animation-delay:-1.4s}
+@keyframes bob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-3px)}}
+.stats{display:flex; flex-wrap:wrap; gap:10px}
+.stat{background:var(--card); border:2px dashed var(--line); border-radius:14px; padding:8px 14px; font-weight:600}
+.stat b{font:800 20px var(--display); color:var(--pine); font-variant-numeric:tabular-nums}
+
+.bar{z-index:5; position:sticky; top:env(safe-area-inset-top,0px); background:var(--bg); padding-block:12px; margin-top:20px; border-bottom:2px solid var(--line)}
+.bar .wrap{display:flex; flex-wrap:wrap; gap:12px 18px; align-items:center}
+.sort{display:flex; gap:6px; flex-wrap:wrap}
+.lbl{font:800 12px var(--body); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+button{font:inherit; cursor:pointer}
+.seg{border:2px solid var(--pine); background:transparent; color:var(--pine); padding:6px 14px; border-radius:999px; font-weight:800}
+.seg[aria-pressed="true"]{background:var(--pine); color:var(--bg)}
+.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chip{border:0; background:var(--chip); color:var(--fg); padding:6px 12px; border-radius:999px; font-weight:600; font-size:14px}
+.chip[aria-pressed="true"]{background:var(--berry); color:#fff}
+button:focus-visible, a:focus-visible{outline:3px solid var(--gold); outline-offset:2px}
+
+main{display:grid; gap:34px; padding-top:26px}
+.group h2{font:800 26px/1.1 var(--display); margin:0 0 14px; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+.group h2 small{font:600 14px var(--body); color:var(--muted)}
+.grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fill, minmax(250px,1fr))}
+.card{background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden; display:flex; flex-direction:column; min-width:0}
+.pic{position:relative; aspect-ratio:4/3; max-width:100%; display:grid; place-items:center}
+.pic svg.art{width:62%; height:auto; filter:drop-shadow(0 6px 6px rgba(0,0,0,.12))}
+.pic .mini{position:absolute; right:8px; bottom:0; width:46px; height:auto}
+.tag{position:absolute; left:10px; top:10px; background:var(--card); color:var(--fg); font:800 11px var(--body); letter-spacing:.06em; text-transform:uppercase; padding:4px 9px; border-radius:999px}
+.body{padding:14px 16px 16px; display:grid; gap:8px; flex:1; align-content:start}
+.name{font:800 18px/1.2 var(--display); margin:0}
+.price{font:800 22px var(--display); color:var(--pine); font-variant-numeric:tabular-nums; display:flex; gap:8px; align-items:baseline; flex-wrap:wrap}
+.price small{font:600 12px var(--body); color:var(--muted)}
+.quote{margin:0; font-style:italic; font-weight:600; color:var(--fg); background:var(--bg2); border-radius:12px; padding:9px 12px; position:relative}
+.quote::before{content:"El gnomo opina:"; display:block; font:800 11px var(--body); font-style:normal; letter-spacing:.08em; text-transform:uppercase; color:var(--berry); margin-bottom:2px}
+.where{font-size:14px; color:var(--muted)}
+.where b{color:var(--fg)}
+.links{display:flex; gap:6px; flex-wrap:wrap; margin-top:auto; padding-top:4px}
+.links a{font-size:13px; font-weight:800; text-decoration:none; color:var(--pine); border:2px solid var(--line); padding:4px 10px; border-radius:999px}
+.links a:hover{border-color:var(--pine)}
+.links a.main{background:var(--berry); border-color:var(--berry); color:#fff}
+
+.hero{display:grid; grid-template-columns:1fr auto; gap:20px; align-items:end}
+.heroText{display:grid; gap:18px; min-width:0}
+.me{margin:0; width:210px; display:grid; gap:6px; justify-items:center}
+.me #me svg{width:190px; height:auto; animation:bob 3.2s ease-in-out infinite; transform-origin:50% 100%}
+.bubble{background:var(--card); border:2px solid var(--line); border-radius:16px; padding:8px 12px; font-weight:800; font-size:14px; position:relative; text-align:center}
+.bubble::after{content:""; position:absolute; left:50%; bottom:-9px; width:14px; height:14px; background:var(--card); border-right:2px solid var(--line); border-bottom:2px solid var(--line); transform:translateX(-50%) rotate(45deg)}
+@media (max-width:640px){ .hero{grid-template-columns:1fr} .me{justify-self:center} }
+@media (prefers-reduced-motion: reduce){ .me #me svg{animation:none} }
+.lights{position:relative; z-index:1; height:34px; margin-inline:calc(-1 * max(16px, env(safe-area-inset-left,0px))); background:radial-gradient(circle at 50% -40px, transparent 46px, var(--pine) 47px, var(--pine) 49px, transparent 50px) 0 0/60px 34px repeat-x; display:flex; justify-content:space-around; overflow:hidden}
+.lights i{width:10px; height:16px; border-radius:50% 50% 45% 45%; margin-top:8px; background:var(--gold); box-shadow:0 0 10px var(--gold); animation:blink 1.4s infinite alternate}
+.lights i:nth-child(4n+1){background:#e8384f; box-shadow:0 0 10px #e8384f; animation-delay:-.3s}
+.lights i:nth-child(4n+2){background:#3fae6a; box-shadow:0 0 10px #3fae6a; animation-delay:-.9s}
+.lights i:nth-child(4n+3){background:#3f8fe0; box-shadow:0 0 10px #3f8fe0; animation-delay:-.6s}
+@keyframes blink{to{opacity:.35; box-shadow:none}}
+.holly{font-size:26px; letter-spacing:4px}
+.card:hover .art{transform:rotate(-4deg) scale(1.04)} .art{transition:transform .25s}
+@media (prefers-reduced-motion: reduce){ .lights i{animation:none} }
+footer{margin-top:44px; text-align:center; color:var(--muted); font-size:14px; display:grid; gap:8px; justify-items:center}
+@media (prefers-reduced-motion: reduce){ .gnomeRow svg{animation:none} #snow{display:none} }
+</style>
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas>
+
+<div class="lights" aria-hidden="true">
+  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+</div>
+<header class="wrap">
+ <div class="hero">
+  <div class="heroText">
+  <div class="kicker">🎄 Navidad 2026 · Departamento Oficial de Gnomos y Duendes 🎅</div>
+  <h1>La Carta de <em>los Gnomos</em></h1>
+  <p class="lead">Querida familia: los gnomos y los duendecillos han revisado mi comportamiento este año y dicen que <b>"más o menos bien"</b>. Aquí tenéis mis deseos. Podéis ordenarlos por precio o por categoría. Los regalos hechos a mano cuentan el doble (lo dicen los duendes, no yo).</p>
+  </div>
+  <figure class="me"><div class="bubble">¡Hola, familia! Esta es mi lista. He sido buena… casi siempre 😇</div><div id="me"></div></figure>
+ </div>
+  <div class="gnomeRow" id="gnomeRow" aria-hidden="true"></div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="lbl">Ordenar</span>
+    <div class="sort" role="group" aria-label="Ordenar">
+      <button class="seg" id="s-asc" data-sort="asc" aria-pressed="true">Precio ↑ más barato</button>
+      <button class="seg" id="s-desc" data-sort="desc" aria-pressed="false">Precio ↓ más caro</button>
+      <button class="seg" id="s-cat" data-sort="cat" aria-pressed="false">Por categoría</button>
+    </div>
+    <span class="lbl">Ver</span>
+    <div class="chips" id="chips" role="group" aria-label="Filtrar por categoría"></div>
+  </div>
+</div>
+
+<main class="wrap" id="list"></main>
+
+<footer class="wrap">
+  <div id="footGnome" aria-hidden="true"></div>
+  <div>Los precios son orientativos. Los que pone <b>"estimado"</b> están por confirmar: miradlo en la tienda antes de comprar.</div>
+  <div class="holly" aria-hidden="true">🎁 ⛄ 🎄 🦌 🍪</div>
+  <div>Ningún gnomo resultó herido haciendo esta lista. Un reno sí se tomó tres turrones.</div>
+</footer>
+
+<script>
+const CATS = [
+  {id:"carino", n:"Hechos con cariño", hue:"#f6d6dd"},
+  {id:"piel",   n:"Cuidado de la piel", hue:"#dcebf4"},
+  {id:"maqui",  n:"Maquillaje", hue:"#f8dcd8"},
+  {id:"pelo",   n:"Pelo", hue:"#f3e6cc"},
+  {id:"lush",   n:"Baño y Lush", hue:"#f7dbee"},
+  {id:"perfume",n:"Perfumes", hue:"#ece0f5"},
+  {id:"ropa",   n:"Ropa y calzado", hue:"#e2ecd9"},
+  {id:"hp",     n:"Harry Potter", hue:"#f1ddc9"},
+  {id:"tech",   n:"Tecnología", hue:"#dde3ea"}
+];
+const S = {
+  primor:{n:"Primor", u:"https://www.primor.eu/"}, sephora:{n:"Sephora", u:"https://www.sephora.es/"},
+  druni:{n:"Druni", u:"https://www.druni.es/"}, amazon:{n:"Amazon", u:"https://www.amazon.es/"},
+  eci:{n:"El Corte Inglés", u:"https://www.elcorteingles.es/"}, zara:{n:"Zara", u:"https://www.zara.com/es/"},
+  tezenis:{n:"Tezenis", u:"https://www.tezenis.com/es/"}, lush:{n:"Lush", u:"https://www.lush.com/es/es"},
+  primark:{n:"Primark", u:"https://www.primark.com/es-es"}, oysho:{n:"Oysho", u:"https://www.oysho.com/es/"},
+  mm:{n:"MediaMarkt", u:"https://www.mediamarkt.es/"}, mi:{n:"Xiaomi Store", u:"https://www.mi.com/es/"},
+  insta:{n:"Tienda Insta360", u:"https://store.insta360.com/"}, bmd:{n:"Blackmagic Design", u:"https://www.blackmagicdesign.com/es/products/davinciresolve/studio"},
+  zalando:{n:"Zalando", u:"https://www.zalando.es/"}, farm:{n:"Farmacias"}, merca:{n:"Mercadona"}, casa:{n:"Tu casa, con tus manos"}
+};
+// p = precio para ordenar (el mínimo del rango) · est = precio por confirmar
+const ITEMS = [
+ {n:"Carta escrita a mano", c:"carino", p:0, pl:"Gratis", art:"letter", c1:"#c22d48", c2:"#fff", w:["casa"], q:"Gratis, pero vale más que la cámara de 929 €. Bueno, casi."},
+ {n:"Un dibujo hecho por ti", c:"carino", p:0, pl:"Gratis", art:"drawing", c1:"#f2c14e", c2:"#4ea4e9", w:["casa"], q:"Da igual si dibujas como un niño de 4 años. Lo voy a enmarcar igual."},
+ {n:"Un plan juntos (café, peli o paseo)", c:"carino", p:0, pl:"Gratis", art:"mug", c1:"#c22d48", c2:"#7b4a2b", w:["casa"], q:"Tu compañía es el regalo. El café lo pagas tú, eso sí."},
+ {n:"Una playlist hecha para mí", c:"carino", p:0, pl:"Gratis", art:"cassette", c1:"#1f5a3d", c2:"#f2c14e", w:["casa"], q:"Prohibido meter villancicos en bucle. Uno, como mucho."},
+ {n:"Mascarillas de tela", c:"piel", p:2, pl:"desde 2 €", sub:"la unidad · también en packs", art:"sheetmask", c1:"#f4f8fb", c2:"#7fb3d5", w:["primor","druni","merca"], q:"Para asustar a la familia en el salón y, de paso, hidratarme."},
+ {n:"Algo de la colección Harry Potter de Primark", c:"hp", p:5, pl:"5–25 €", sub:"pijama, taza, calcetines…", art:"wizard", c1:"#7f0909", c2:"#d4a017", w:["primark"], q:"Mi carta de Hogwarts no ha llegado, así que me conformo con Primark."},
+ {n:"The Ordinary Niacinamide 10% + Zinc 1%", c:"piel", p:6, pl:"6 €", art:"dropper", c1:"#eae6dc", c2:"#222", w:["primor","sephora","druni"], q:"Para que mis poros dejen de tener vida social."},
+ {n:"Vaseline Gluta-Hya Dewy Radiance", c:"piel", p:8, pl:"8 €", art:"pump", c1:"#f6c7b8", c2:"#c2577a", w:["primor","amazon"], q:"Brillar como el árbol de Navidad, pero sin enchufarme."},
+ {n:"Camiseta ligerísima escote barco – Tezenis", c:"ropa", p:11.99, pl:"11,99 €", art:"tee", c1:"#f6efe6", c2:"#b9a998", w:["tezenis"], q:"Ligerísima, como mi fuerza de voluntad delante de los turrones."},
+ {n:"CeraVe Loción Hidratante", c:"piel", p:12, pl:"12–15 €", sub:"aprox.", art:"pump", c1:"#ffffff", c2:"#2f6db5", w:["farm","primor","amazon"], q:"Hidratación de farmacia: seria, aburrida y totalmente necesaria."},
+ {n:"Zara Delicate Metals Eye Gloss", c:"maqui", p:12.95, pl:"≈ 13 €", est:1, art:"gloss", c1:"#d8c29a", c2:"#8a7350", w:["zara"], q:"Mirada metálica, nivel bola de Navidad."},
+ {n:"Crema Hada Labo", c:"piel", p:14, pl:"≈ 14 €", est:1, sub:"falta elegir versión", art:"jar", c1:"#ffffff", c2:"#d0115e", w:["primor","amazon"], q:"Hidratación japonesa. Os diré cuál quiero en cuanto me decida (o sea, nunca)."},
+ {n:"Lush Yog Nog", c:"lush", p:10, pl:"≈ 10 €", est:1, sub:"precio variable", art:"soap", c1:"#e8c77a", c2:"#8a5a2b", w:["lush"], q:"Huele a galleta navideña. Prometo no darle un mordisco."},
+ {n:"Lush Snow Fairy (gel, crema o lo que sea)", c:"lush", p:12, pl:"≈ 12 €", est:1, sub:"precio variable", art:"tube", c1:"#f7a8d0", c2:"#c2577a", w:["lush"], q:"Huele a chuche rosa. Es oficialmente mi personalidad en diciembre."},
+ {n:"Camiseta ligerísima escote pico con encaje – Tezenis", c:"ropa", p:15, pl:"15–20 €", sub:"aprox.", art:"tee", lace:1, c1:"#e7d6f0", c2:"#8f6aa8", w:["tezenis"], q:"Encaje, porque una también tiene su lado elegante los martes."},
+ {n:"CeraVe SA Crema Alisadora", c:"piel", p:15, pl:"15–25 €", sub:"aprox.", art:"jar", c1:"#ffffff", c2:"#2f6db5", w:["farm","primor","amazon"], q:"Alisa la piel. Las arrugas del alma van aparte."},
+ {n:"Zara Scarlet Rush Cushion Blush – Red Lollipop", c:"maqui", p:15.95, pl:"≈ 16 €", est:1, art:"compact", c1:"#d3243f", c2:"#2b2b2b", w:["zara"], q:"Para parecer que vengo de esquiar en Suiza, aunque venga del metro."},
+ {n:"Zara Hair Perfume Set – 3 × 75 ml", c:"pelo", p:22.95, pl:"22,95 €", sub:"aprox.", art:"trio", c1:"#e8c6d6", c2:"#b08aa0", w:["zara"], q:"Que mi pelo huela mejor que mis decisiones."},
+ {n:"Zara Luce di Toscana – Italian Fig & Wood 100 ml", c:"perfume", p:25.95, pl:"≈ 26 €", est:1, art:"perfume", c1:"#9bb07a", c2:"#5a4632", w:["zara"], q:"La Toscana sin coger un avión. Ryanair está llorando."},
+ {n:"Ropa térmica de Oysho", c:"ropa", p:25.99, pl:"≈ 26–40 €", est:1, sub:"camiseta o mallas térmicas", art:"thermal", c1:"#d9cfc4", c2:"#8b7d70", w:["oysho"], q:"Para sobrevivir a la casa de la abuela con la calefacción apagada."},
+ {n:"Lush Snow Fairy Body Spray", c:"lush", p:30, pl:"30 €", art:"spray", c1:"#f7a8d0", c2:"#2b2b2b", w:["lush"], link:"https://www.lush.com/es/es/p/snow-fairy-body-spray", q:"Snow Fairy en spray: ahora puedo ser un hada a distancia."},
+ {n:"Sol de Janeiro Intense", c:"perfume", p:38, pl:"≈ 38 €", est:1, art:"spray", c1:"#f4a6a0", c2:"#c9932f", w:["sephora","eci"], q:"Oler a playa de Brasil mientras fuera hace 3 grados."},
+ {n:"Lush Yuzu Cheesecake Body Spray", c:"lush", p:40, pl:"40 €", art:"spray", c1:"#f3e27a", c2:"#2b2b2b", w:["lush"], q:"Un postre que no engorda. Por fin."},
+ {n:"Aceite Kérastase", c:"pelo", p:40, pl:"40–55 €", sub:"aprox.", art:"oil", c1:"#d6a640", c2:"#2b2b2b", w:["sephora","eci","primor"], q:"Pelo de anuncio. El ventilador para el efecto viento lo pongo yo."},
+ {n:"Prenda Project X Paris (ref. B2596-OG)", c:"ropa", p:60, pl:"≈ 60 €", est:1, sub:"mirad la talla y el precio en el enlace", art:"hoodie", c1:"#2b2b2b", c2:"#e8e8e8", w:[], link:"https://www.projectxparis.com/es/products/b2596-og?variant=55743479841148", linkName:"Project X Paris", q:"Para ir por la calle como si tuviera un grupo de música."},
+ {n:"Botines FREE ALASK marrón – Mustang", c:"ropa", p:70, pl:"≈ 70 €", est:1, art:"boot", c1:"#7b4a2b", c2:"#3a2414", w:["zalando","eci"], q:"Botines para pisar fuerte en 2027."},
+ {n:"Burberry Her", c:"perfume", p:75, pl:"≈ 75 €", est:1, sub:"depende del tamaño", art:"perfume", c1:"#f1b6c6", c2:"#5a3b2a", w:["sephora","primor","druni","eci"], q:"Elegancia londinense para ir al Mercadona."},
+ {n:"Micrófonos", c:"tech", p:90, pl:"≈ 90 €", est:1, sub:"para grabar vídeos", art:"mic", c1:"#3a3a3a", c2:"#9aa5ad", w:["amazon","mm"], q:"Para que se me oiga más. Sí, todavía más."},
+ {n:"Proyector Xiaomi", c:"tech", p:150, pl:"150–250 €", sub:"presupuesto", art:"projector", c1:"#f2f2f2", c2:"#3a3a3a", w:["mi","mm","amazon"], q:"Cine en casa. Las palomitas las pones tú."},
+ {n:"DaVinci Resolve Studio (la aplicación)", c:"tech", p:295, pl:"295 €", sub:"licencia de por vida, aprox.", art:"software", c1:"#20232a", c2:"#e94e4e", w:["bmd"], q:"Para editar lo que grabe con la cámara de abajo. Todo encaja, ¿veis?"},
+ {n:"Insta360 Luna Ultra Creator Bundle – Negro", c:"tech", p:929, pl:"929 €", sub:"aprox.", art:"camera", c1:"#1d1d1f", c2:"#7ab8d9", w:["insta"], q:"Para grabar mi vida como si fuera un documental. Se aceptan colectas familiares."}
+];
+
+/* ---------- dibujos ---------- */
+const sh = '<ellipse cx="60" cy="108" rx="34" ry="5" fill="#000" opacity=".12"/>';
+function art(t, a, b, lace){
+  const s = (x)=>`<svg class="art" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${sh}${x}</svg>`;
+  switch(t){
+  case "dropper": return s(`<rect x="44" y="50" width="32" height="56" rx="6" fill="${a}" stroke="#0002"/><rect x="49" y="66" width="22" height="22" rx="2" fill="#fff"/><rect x="53" y="72" width="14" height="2" fill="${b}"/><rect x="53" y="77" width="10" height="2" fill="${b}"/><rect x="52" y="40" width="16" height="12" rx="2" fill="${b}"/><rect x="54" y="16" width="12" height="26" rx="6" fill="${b}"/>`);
+  case "oil": return s(`<rect x="40" y="48" width="40" height="58" rx="10" fill="${a}"/><rect x="44" y="52" width="10" height="44" rx="5" fill="#fff" opacity=".35"/><rect x="47" y="70" width="26" height="14" rx="2" fill="${b}"/><rect x="52" y="36" width="16" height="14" rx="2" fill="${b}"/><rect x="55" y="18" width="10" height="20" rx="5" fill="${b}"/>`);
+  case "pump": return s(`<rect x="38" y="48" width="44" height="58" rx="12" fill="${a}" stroke="#0002"/><rect x="38" y="66" width="44" height="16" fill="${b}"/><rect x="54" y="38" width="12" height="12" fill="#ccc"/><rect x="48" y="28" width="30" height="10" rx="3" fill="${b}"/><rect x="74" y="30" width="12" height="5" rx="2" fill="${b}"/>`);
+  case "jar": return s(`<rect x="28" y="58" width="64" height="46" rx="10" fill="${a}" stroke="#0002"/><rect x="25" y="44" width="70" height="18" rx="6" fill="${b}"/><rect x="40" y="70" width="40" height="18" rx="3" fill="${b}" opacity=".85"/><rect x="46" y="76" width="28" height="3" fill="#fff"/>`);
+  case "tube": return s(`<path d="M38 18 H82 L74 86 H46 Z" fill="${a}"/><rect x="36" y="14" width="48" height="8" rx="2" fill="${b}"/><rect x="46" y="86" width="28" height="18" rx="4" fill="${b}"/><circle cx="60" cy="48" r="10" fill="#fff" opacity=".8"/><path d="M60 41 l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill="${b}"/>`);
+  case "tee": return s(`<path d="M38 28 L52 22 Q60 32 68 22 L82 28 L98 46 L86 56 L80 50 L80 104 L40 104 L40 50 L34 56 L22 46 Z" fill="${a}" stroke="${b}" stroke-width="2"/>${lace?`<path d="M52 22 L60 40 L68 22" fill="none" stroke="${b}" stroke-width="2"/>${[0,1,2,3,4].map(i=>`<circle cx="${53+i*3.5}" cy="${25+i*3.4-(i>2?(i-2)*6.8:0)}" r="2" fill="${b}"/>`).join("")}`:`<path d="M48 25 Q60 30 72 25" fill="none" stroke="${b}" stroke-width="2"/>`}`);
+  case "thermal": return s(`<path d="M40 24 L54 20 Q60 26 66 20 L80 24 L90 62 L82 64 L78 46 L78 104 L42 104 L42 46 L38 64 L30 62 Z" fill="${a}" stroke="${b}" stroke-width="2"/>${[40,52,64,76,88].map(y=>`<path d="M44 ${y} H76" stroke="${b}" stroke-width="1.5" opacity=".5" stroke-dasharray="3 3"/>`).join("")}<text x="60" y="70" font-size="16" text-anchor="middle">❄</text>`);
+  case "hoodie": return s(`<path d="M44 26 Q60 8 76 26 L94 40 L100 84 L88 86 L84 56 L84 104 L36 104 L36 56 L32 86 L20 84 L26 40 Z" fill="${a}"/><path d="M48 30 Q60 46 72 30" fill="none" stroke="${b}" stroke-width="2"/><path d="M56 40 V54 M64 40 V54" stroke="${b}" stroke-width="2"/><rect x="46" y="76" width="28" height="14" rx="3" fill="none" stroke="${b}" stroke-width="2"/><text x="60" y="68" font-size="9" font-weight="800" fill="${b}" text-anchor="middle" font-family="sans-serif">PXP</text>`);
+  case "compact": return s(`<circle cx="60" cy="64" r="36" fill="${b}"/><circle cx="60" cy="64" r="28" fill="${a}"/><circle cx="50" cy="54" r="8" fill="#fff" opacity=".3"/><path d="M60 46 C50 36 38 50 60 64 C82 50 70 36 60 46Z" fill="#fff" opacity=".25"/>`);
+  case "gloss": return s(`<rect x="50" y="14" width="20" height="40" rx="5" fill="${b}"/><rect x="48" y="52" width="24" height="54" rx="7" fill="${a}"/><rect x="52" y="56" width="5" height="44" rx="2.5" fill="#fff" opacity=".5"/><circle cx="66" cy="70" r="1.5" fill="#fff"/><circle cx="62" cy="84" r="1.2" fill="#fff"/>`);
+  case "perfume": return s(`<rect x="48" y="16" width="24" height="20" rx="4" fill="${b}"/><rect x="55" y="34" width="10" height="10" fill="#bbb"/><rect x="30" y="44" width="60" height="62" rx="12" fill="${a}" opacity=".9" stroke="#0002"/><rect x="36" y="50" width="10" height="50" rx="5" fill="#fff" opacity=".35"/><rect x="46" y="68" width="28" height="18" rx="2" fill="#fff" opacity=".85"/><rect x="51" y="75" width="18" height="3" fill="${b}"/>`);
+  case "spray": return s(`<rect x="42" y="38" width="36" height="68" rx="9" fill="${a}" stroke="#0002"/><rect x="46" y="42" width="7" height="58" rx="3.5" fill="#fff" opacity=".4"/><rect x="50" y="20" width="20" height="18" rx="4" fill="${b}"/><rect x="68" y="24" width="10" height="6" rx="2" fill="${b}"/><circle cx="86" cy="22" r="2" fill="${a}"/><circle cx="92" cy="28" r="1.6" fill="${a}"/><circle cx="90" cy="16" r="1.4" fill="${a}"/><rect x="48" y="62" width="24" height="20" rx="2" fill="#fff" opacity=".85"/>`);
+  case "soap": return s(`<path d="M24 60 L60 44 L96 60 L96 86 L60 102 L24 86 Z" fill="${a}"/><path d="M24 60 L60 76 L96 60 L60 44Z" fill="#fff" opacity=".35"/><path d="M60 76 V102" stroke="#0002"/>${[[40,58],[56,52],[70,60],[48,64],[80,62]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="${b}"/>`).join("")}`);
+  case "trio": return s([0,1,2].map(i=>`<rect x="${22+i*28}" y="${44-i*0}" width="22" height="60" rx="6" fill="${a}" opacity="${1-i*.15}" stroke="#0002"/><rect x="${27+i*28}" y="32" width="12" height="13" rx="2" fill="${b}"/><rect x="${26+i*28}" y="66" width="14" height="14" rx="2" fill="#fff" opacity=".8"/>`).join(""));
+  case "sheetmask": return s(`<ellipse cx="60" cy="62" rx="32" ry="42" fill="${a}" stroke="${b}" stroke-width="2"/><ellipse cx="47" cy="54" rx="7" ry="4" fill="${b}" opacity=".45"/><ellipse cx="73" cy="54" rx="7" ry="4" fill="${b}" opacity=".45"/><path d="M56 64 L60 72 L64 64" fill="none" stroke="${b}" stroke-width="2"/><path d="M50 84 Q60 90 70 84" fill="none" stroke="${b}" stroke-width="3" stroke-linecap="round"/><circle cx="40" cy="72" r="5" fill="#f4a6b8" opacity=".6"/><circle cx="80" cy="72" r="5" fill="#f4a6b8" opacity=".6"/>`);
+  case "wizard": return s(`<path d="M18 50 L58 36 L66 100 L40 106 Z" fill="${a}"/>${[0,1,2,3].map(i=>`<path d="M${22+i*3} ${60+i*12} L${60+i*1.5} ${48+i*12}" stroke="${b}" stroke-width="5"/>`).join("")}<path d="M78 98 L104 30" stroke="#6b4423" stroke-width="5" stroke-linecap="round"/><path d="M104 30 l3 -8" stroke="#3d2614" stroke-width="5" stroke-linecap="round"/><g fill="${b}"><path d="M98 14 l2 5 5 .5-4 3 1.5 5-4.5-3-4.5 3 1.5-5-4-3 5-.5z"/><circle cx="86" cy="22" r="2"/><circle cx="110" cy="44" r="1.8"/></g><circle cx="72" cy="66" r="9" fill="none" stroke="#2b2b2b" stroke-width="3"/><circle cx="94" cy="66" r="9" fill="none" stroke="#2b2b2b" stroke-width="3"/><path d="M81 66 H85" stroke="#2b2b2b" stroke-width="3"/>`);
+  case "letter": return s(`<rect x="20" y="36" width="80" height="58" rx="5" fill="${b}" stroke="#0003"/><path d="M20 40 L60 70 L100 40" fill="none" stroke="#0003" stroke-width="2"/><path d="M60 62 C54 54 44 60 52 68 L60 76 L68 68 C76 60 66 54 60 62Z" fill="${a}"/><path d="M30 86 H52" stroke="#0002" stroke-width="2"/>`);
+  case "drawing": return s(`<rect x="22" y="22" width="72" height="80" rx="3" fill="#fff" stroke="#0002" transform="rotate(-5 58 62)"/><circle cx="76" cy="40" r="9" fill="${a}"/><path d="M36 82 V62 L50 50 L64 62 V82 Z" fill="none" stroke="${b}" stroke-width="3" stroke-linejoin="round"/><path d="M47 82 V70 H54 V82" fill="none" stroke="#c22d48" stroke-width="3"/><path d="M30 90 Q50 84 86 90" fill="none" stroke="#1f5a3d" stroke-width="3"/><rect x="86" y="60" width="8" height="40" rx="2" fill="#c22d48" transform="rotate(25 90 80)"/>`);
+  case "mug": return s(`<rect x="32" y="48" width="46" height="54" rx="8" fill="${a}"/><path d="M78 60 h8 a10 10 0 0 1 0 22 h-8" fill="none" stroke="${a}" stroke-width="6"/><ellipse cx="55" cy="50" rx="21" ry="5" fill="${b}"/><path d="M55 78 C50 72 42 76 48 82 L55 88 L62 82 C68 76 60 72 55 78Z" fill="#fff"/><path d="M46 38 q4 -6 0 -12 M56 38 q4 -6 0 -12 M66 38 q4 -6 0 -12" stroke="#9aa" stroke-width="2.5" fill="none" stroke-linecap="round"/>`);
+  case "cassette": return s(`<rect x="16" y="34" width="88" height="58" rx="6" fill="${a}"/><rect x="26" y="42" width="68" height="18" rx="2" fill="${b}"/><rect x="34" y="64" width="52" height="20" rx="10" fill="#fff" opacity=".9"/><circle cx="46" cy="74" r="6" fill="#2b2b2b"/><circle cx="74" cy="74" r="6" fill="#2b2b2b"/><text x="60" y="56" font-size="9" font-weight="800" text-anchor="middle" fill="#2b2b2b" font-family="sans-serif">PARA MÍ ♥</text>`);
+  case "boot": return s(`<path d="M38 22 H66 L68 70 Q92 72 98 88 V96 H32 V84 Q36 60 38 22Z" fill="${a}"/><rect x="30" y="96" width="70" height="8" rx="2" fill="${b}"/><path d="M40 30 H64" stroke="${b}" stroke-width="3"/><path d="M52 34 V64" stroke="${b}" stroke-width="2" stroke-dasharray="3 3"/><rect x="34" y="22" width="34" height="8" rx="3" fill="#d9b48f"/>`);
+  case "projector": return s(`<path d="M30 66 L2 40 L2 92 Z" fill="#f2c14e" opacity=".35"/><rect x="24" y="46" width="80" height="42" rx="10" fill="${a}" stroke="#0002"/><circle cx="42" cy="67" r="13" fill="${b}"/><circle cx="42" cy="67" r="7" fill="#7ab8d9"/><rect x="66" y="56" width="28" height="4" rx="2" fill="#0002"/><rect x="66" y="64" width="28" height="4" rx="2" fill="#0002"/><rect x="66" y="72" width="28" height="4" rx="2" fill="#0002"/><rect x="34" y="88" width="10" height="8" fill="${b}"/><rect x="86" y="88" width="10" height="8" fill="${b}"/>`);
+  case "software": return s(`<rect x="12" y="24" width="96" height="74" rx="7" fill="${a}"/><circle cx="22" cy="32" r="2.5" fill="#e94e4e"/><circle cx="30" cy="32" r="2.5" fill="#f5c542"/><circle cx="38" cy="32" r="2.5" fill="#5fc08c"/><rect x="20" y="40" width="80" height="28" rx="3" fill="#353a45"/><path d="M52 46 L68 54 L52 62Z" fill="#fff"/><rect x="20" y="74" width="34" height="6" rx="2" fill="#4ea4e9"/><rect x="56" y="74" width="26" height="6" rx="2" fill="${b}"/><rect x="24" y="84" width="46" height="6" rx="2" fill="#f5c542"/><rect x="72" y="84" width="22" height="6" rx="2" fill="#5fc08c"/><rect x="62" y="70" width="2" height="24" fill="#fff"/>`);
+  case "mic": return s(`<rect x="46" y="14" width="28" height="48" rx="14" fill="${a}"/>${[24,32,40,48].map(y=>`<path d="M50 ${y} H70" stroke="${b}" stroke-width="2"/>`).join("")}<path d="M38 46 Q38 76 60 76 Q82 76 82 46" fill="none" stroke="${b}" stroke-width="4"/><rect x="57" y="76" width="6" height="22" fill="${b}"/><rect x="40" y="98" width="40" height="7" rx="3" fill="${a}"/>`);
+  case "camera": return s(`<rect x="42" y="14" width="36" height="88" rx="12" fill="${a}"/><circle cx="60" cy="34" r="12" fill="#444"/><circle cx="60" cy="34" r="7" fill="${b}"/><circle cx="57" cy="31" r="2" fill="#fff" opacity=".8"/><rect x="48" y="54" width="24" height="28" rx="3" fill="#2f3a45"/><circle cx="60" cy="92" r="4" fill="#c22d48"/><path d="M84 40 l6-3 M84 50 h7 M84 60 l6 3" stroke="#f2c14e" stroke-width="2.5" stroke-linecap="round"/>`);
+  }
+  return s("");
+}
+
+/* ---------- gnomos ---------- */
+function gnome(hat, beard="#f4f1ec", h=100, holding=""){
+  return `<svg viewBox="0 0 70 100" width="${h*0.7}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="35" cy="97" rx="22" ry="3" fill="#000" opacity=".12"/>
+  <rect x="15" y="64" width="40" height="32" rx="12" fill="${hat==="#1f5a3d"?"#c22d48":"#1f5a3d"}"/>
+  <rect x="17" y="90" width="14" height="7" rx="3" fill="#4a2e1a"/><rect x="39" y="90" width="14" height="7" rx="3" fill="#4a2e1a"/>
+  <path d="M14 48 Q35 98 56 48 Z" fill="${beard}"/>
+  <path d="M8 50 Q35 -22 62 50 Z" fill="${hat}"/>
+  <path d="M8 50 Q35 42 62 50" fill="none" stroke="#0002" stroke-width="3"/>
+  <circle cx="35" cy="52" r="7" fill="#f2a58e"/><circle cx="33" cy="50" r="2" fill="#fff" opacity=".6"/>
+  ${holding}
+  </svg>`;
+}
+const present = (c)=>`<rect x="40" y="66" width="22" height="18" rx="2" fill="${c}"/><rect x="49" y="66" width="4" height="18" fill="#f2c14e"/><path d="M51 66 q-6 -8 -8 -2 q4 2 8 2 q6 -8 8 -2 q-4 2 -8 2" fill="none" stroke="#f2c14e" stroke-width="2"/>`;
+function elf(suit="#2f9e5a", h=100, holding=""){
+  return `<svg viewBox="0 0 70 100" width="${h*0.7}" height="${h}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <ellipse cx="35" cy="97" rx="22" ry="3" fill="#000" opacity=".12"/>
+  <path d="M17 92 Q12 84 20 86 L24 92Z M53 92 Q58 84 50 86 L46 92Z" fill="#c22d48"/>
+  <rect x="18" y="60" width="34" height="32" rx="10" fill="${suit}"/>
+  <rect x="18" y="74" width="34" height="5" fill="#3a2414"/><rect x="31" y="73" width="8" height="7" rx="1" fill="#f2c14e"/>
+  <path d="M18 60 l5 6 5-6 5 6 5-6 5 6 5-6 4 6" fill="none" stroke="#c22d48" stroke-width="3"/>
+  <path d="M15 42 L4 34 L17 48Z M55 42 L66 34 L53 48Z" fill="#f5c3a8"/>
+  <circle cx="35" cy="44" r="17" fill="#f5c3a8"/>
+  <circle cx="29" cy="43" r="2" fill="#2b2b2b"/><circle cx="41" cy="43" r="2" fill="#2b2b2b"/>
+  <path d="M29 50 Q35 55 41 50" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="25" cy="49" r="3" fill="#f28b8b" opacity=".6"/><circle cx="45" cy="49" r="3" fill="#f28b8b" opacity=".6"/>
+  <path d="M17 36 Q30 22 54 34 Q50 14 66 6 Q44 0 20 30Z" fill="${suit}"/>
+  <rect x="16" y="31" width="38" height="7" rx="3.5" fill="#fff"/><circle cx="66" cy="7" r="4" fill="#f2c14e"/>
+  ${holding}
+  </svg>`;
+}
+const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mi avatar con gorro de Papá Noel y la lista de regalos">
+  <ellipse cx="100" cy="224" rx="70" ry="6" fill="#000" opacity=".12"/>
+  <path d="M40 120 Q30 200 50 215 L150 215 Q170 200 160 120Z" fill="#5a3522"/>
+  <path d="M58 170 Q100 150 142 170 L150 222 L50 222Z" fill="#c22d48"/>
+  <path d="M84 160 L100 180 L116 160" fill="#fff"/>
+  <rect x="93" y="140" width="14" height="22" fill="#f1c0a2"/>
+  <ellipse cx="100" cy="112" rx="40" ry="44" fill="#f5c9ad"/>
+  <path d="M60 112 Q58 70 100 66 Q142 70 140 112 Q130 84 100 84 Q78 86 60 112Z" fill="#5a3522"/>
+  <ellipse cx="85" cy="114" rx="4.5" ry="6" fill="#2b2b2b"/><ellipse cx="115" cy="114" rx="4.5" ry="6" fill="#2b2b2b"/>
+  <circle cx="86.5" cy="112" r="1.6" fill="#fff"/><circle cx="116.5" cy="112" r="1.6" fill="#fff"/>
+  <path d="M78 103 q7 -5 14 0 M108 103 q7 -5 14 0" stroke="#3a2414" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="74" cy="128" r="7" fill="#f28b8b" opacity=".55"/><circle cx="126" cy="128" r="7" fill="#f28b8b" opacity=".55"/>
+  <path d="M88 132 Q100 144 112 132" fill="#c22d48" stroke="#8a1c2f" stroke-width="2" stroke-linecap="round"/>
+  <path d="M56 80 Q90 20 150 30 Q170 34 178 60 Q150 44 140 76Z" fill="#c22d48"/>
+  <rect x="52" y="70" width="96" height="16" rx="8" fill="#fff"/><circle cx="178" cy="62" r="10" fill="#fff"/>
+  <g transform="rotate(-8 150 190)"><rect x="128" y="150" width="46" height="62" rx="3" fill="#fffaf0" stroke="#0003"/>
+  <path d="M136 164 H166 M136 174 H162 M136 184 H166 M136 194 H158" stroke="#c22d48" stroke-width="2.5"/>
+  <text x="151" y="160" font-size="7" font-weight="800" text-anchor="middle" fill="#1f5a3d" font-family="sans-serif">MI LISTA</text></g>
+  <circle cx="138" cy="196" r="9" fill="#f5c9ad"/>
+</svg>`;
+const hats = ["#c22d48","#1f5a3d","#2f6db5","#d9a521","#c22d48","#7f3fa8","#1f5a3d","#e2733a","#c22d48","#2f6db5","#1f5a3d","#d9a521"];
+const elfSuits = ["#2f9e5a","#1f7a48","#3fae6a"];
+document.getElementById("gnomeRow").innerHTML = hats.map((c,i)=>{
+  const hgt = 70+((i*37)%40), gift = i%3===0?present(i%2?"#2f6db5":"#c22d48"):"";
+  return i%2 ? elf(elfSuits[i%3], hgt, gift) : gnome(c, "#f4f1ec", hgt, gift);
+}).join("");
+document.getElementById("footGnome").innerHTML = gnome("#c22d48","#f4f1ec",80,present("#1f5a3d")) + elf("#2f9e5a",80,present("#c22d48"));
+document.getElementById("me").innerHTML = avatar;
+
+/* ---------- render ---------- */
+let sort = "asc", cat = "all";
+const catOf = id => CATS.find(c=>c.id===id);
+const tier = p => p===0 ? ["Gratis","lo que más ilusión hace"] : p<15 ? ["Menos de 15 €","para el amigo invisible"] : p<30 ? ["De 15 a 30 €","detallazo"] : p<50 ? ["De 30 a 50 €","esto ya es amor"] : ["50 € o más","mejor juntaros entre varios"];
+const tiers = ["Gratis","Menos de 15 €","De 15 a 30 €","De 30 a 50 €","50 € o más"];
+const gq = n => "https://www.google.com/search?q=" + encodeURIComponent(n);
+const esc = s => s.replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function card(it){
+  const c = catOf(it.c);
+  const stores = it.w.map(k=>S[k]);
+  const whereTxt = [it.linkName, ...stores.map(s=>s.n)].filter(Boolean).join(", ");
+  const links = [];
+  if (it.link) links.push(`<a class="main" href="${it.link}" target="_blank" rel="noopener">Ver el producto</a>`);
+  stores.filter(s=>s.u).forEach(s=>links.push(`<a href="${s.u}" target="_blank" rel="noopener">${esc(s.n)}</a>`));
+  if (it.p>0) links.push(`<a href="${gq(it.n)}" target="_blank" rel="noopener">Buscar en Google</a>`);
+  const hatColors = ["#c22d48","#1f5a3d","#2f6db5","#d9a521"];
+  const mini = (it.n.length%2 ? elf(elfSuits[it.n.length%3],60) : gnome(hatColors[it.n.length%4],"#f4f1ec",60)).replace("<svg ","<svg class=\"mini\" ");
+  return `<article class="card">
+    <div class="pic" style="background:${c.hue}">
+      <span class="tag">${esc(c.n)}</span>${art(it.art,it.c1,it.c2,it.lace)}${mini}
+    </div>
+    <div class="body">
+      <h3 class="name">${esc(it.n)}</h3>
+      <div class="price">${esc(it.pl)}${it.est?` <small>estimado, por confirmar</small>`:""}${it.sub?` <small>${esc(it.sub)}</small>`:""}</div>
+      <p class="quote">${esc(it.q)}</p>
+      <div class="where"><b>Dónde:</b> ${esc(whereTxt || "—")}</div>
+      ${links.length?`<div class="links">${links.join("")}</div>`:""}
+    </div>
+  </article>`;
+}
+
+function render(){
+  let items = ITEMS.filter(i => cat==="all" || i.c===cat);
+  const byPrice = (a,b)=> a.p-b.p || a.n.localeCompare(b.n,"es");
+  items.sort(sort==="desc" ? (a,b)=>byPrice(b,a) : byPrice);
+  let groups = [];
+  if (sort==="cat"){
+    groups = CATS.map(c=>({t:c.n, s:"", list:items.filter(i=>i.c===c.id)}));
+  } else {
+    const order = sort==="desc" ? [...tiers].reverse() : tiers;
+    groups = order.map(t=>({t, s:"", list:items.filter(i=>tier(i.p)[0]===t)}));
+    groups.forEach(g=>{ const x = ITEMS.find(i=>tier(i.p)[0]===g.t); if (x) g.s = tier(x.p)[1]; });
+  }
+  groups = groups.filter(g=>g.list.length);
+  document.getElementById("list").innerHTML = groups.map(g=>`
+    <section class="group">
+      <h2>${esc(g.t)} <small>${g.list.length} ${g.list.length===1?"regalo":"regalos"}${g.s?` · ${esc(g.s)}`:""}</small></h2>
+      <div class="grid">${g.list.map(card).join("")}</div>
+    </section>`).join("");
+}
+
+document.getElementById("chips").innerHTML =
+  `<button class="chip" id="c-all" data-cat="all" aria-pressed="true">Todo</button>` +
+  CATS.map(c=>`<button class="chip" id="c-${c.id}" data-cat="${c.id}" aria-pressed="false">${esc(c.n)}</button>`).join("");
+document.querySelectorAll("[data-sort]").forEach(b=>b.addEventListener("click",()=>{
+  sort=b.dataset.sort; document.querySelectorAll("[data-sort]").forEach(x=>x.setAttribute("aria-pressed", x===b)); render();
+}));
+document.getElementById("chips").addEventListener("click",e=>{
+  const b=e.target.closest("[data-cat]"); if(!b) return;
+  cat=b.dataset.cat; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed", x===b)); render();
+});
+const total = ITEMS.length, free = ITEMS.filter(i=>i.p===0).length;
+document.getElementById("stats").innerHTML =
+  `<div class="stat"><b>${total}</b> deseos</div><div class="stat"><b>${free}</b> gratis y hechos con cariño</div><div class="stat"><b>${ITEMS.filter(i=>i.p>0&&i.p<15).length}</b> por menos de 15 €</div><div class="stat">El más caro: <b>929 €</b> (sin presión)</div>`;
+render();
+
+/* ---------- nieve ---------- */
+(function(){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("snow"), x = cv.getContext("2d");
+  let W, H, flakes = [];
+  const size = ()=>{ W = cv.width = innerWidth; H = cv.height = innerHeight; };
+  size(); addEventListener("resize", size);
+  for (let i=0;i<70;i++) flakes.push({x:Math.random()*W, y:Math.random()*H, r:1+Math.random()*2.5, v:.3+Math.random()*.8, d:Math.random()*6});
+  (function tick(){
+    x.clearRect(0,0,W,H);
+    x.fillStyle = matchMedia("(prefers-color-scheme: dark)").matches ? "rgba(255,255,255,.7)" : "rgba(150,180,200,.55)";
+    for (const f of flakes){ f.y+=f.v; f.d+=.01; f.x+=Math.sin(f.d)*.4; if (f.y>H){f.y=-5; f.x=Math.random()*W;}
+      x.beginPath(); x.arc(f.x,f.y,f.r,0,7); x.fill(); }
+    requestAnimationFrame(tick);
+  })();
+})();
+</script>
+</body>
+</html>
