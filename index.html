@@ -129,6 +129,7 @@ footer{margin-top:44px; text-align:center; color:var(--muted); font-size:14px; d
   <div class="heroText">
   <nav class="occs" aria-label="¿Para quién es la carta?">
     <a class="occ" id="o-noel" href="#papa-noel">🎅 Papá Noel</a>
+    <a class="occ" id="o-amigo" href="#amigo-invisible">🎁 Amigo invisible</a>
     <a class="occ" id="o-reyes" href="#reyes">👑 Reyes Magos</a>
     <a class="occ" id="o-cumple" href="#cumple">🎂 Mi cumpleaños</a>
   </nav>
@@ -174,10 +175,12 @@ const CATS = [
   {id:"pelo",   n:"Pelo", hue:"#f3e6cc"},
   {id:"lush",   n:"Baño y Lush", hue:"#f7dbee"},
   {id:"perfume",n:"Perfumes", hue:"#ece0f5"},
-  {id:"ropa",   n:"Ropa y calzado", hue:"#e2ecd9"},
+  {id:"ropa",   n:"Ropa, bolsos y calzado", hue:"#e2ecd9"},
   {id:"casa",   n:"Para la casa", hue:"#f5e6d3"},
+  {id:"dulce",  n:"Cosas ricas", hue:"#fbe3c8"},
   {id:"hp",     n:"Harry Potter", hue:"#f1ddc9"},
-  {id:"tech",   n:"Tecnología", hue:"#dde3ea"}
+  {id:"tech",   n:"Tecnología", hue:"#dde3ea"},
+  {id:"aparte", n:"Aparte", hue:"#e4eef6"}
 ];
 const S = {
   primor:{n:"Primor", u:"https://www.primor.eu/"}, sephora:{n:"Sephora", u:"https://www.sephora.es/"},
@@ -187,7 +190,7 @@ const S = {
   primark:{n:"Primark", u:"https://www.primark.com/es-es"}, oysho:{n:"Oysho", u:"https://www.oysho.com/es/"},
   mm:{n:"MediaMarkt", u:"https://www.mediamarkt.es/"}, mi:{n:"Xiaomi Store", u:"https://www.mi.com/es/"},
   insta:{n:"Tienda Insta360", u:"https://store.insta360.com/"}, bmd:{n:"Blackmagic Design", u:"https://www.blackmagicdesign.com/es/products/davinciresolve/studio"},
-  zalando:{n:"Zalando", u:"https://www.zalando.es/"}, zh:{n:"Zara Home", u:"https://www.zarahome.com/es/"}, farm:{n:"Farmacias"}, merca:{n:"Mercadona"}, casa:{n:"Tu casa, con tus manos"}
+  zalando:{n:"Zalando", u:"https://www.zalando.es/"}, zh:{n:"Zara Home", u:"https://www.zarahome.com/es/"}, super:{n:"Supermercados"}, fermento:{n:"Fermento"}, clinica:{n:"Clínica de medicina estética (con cita)"}, farm:{n:"Farmacias"}, merca:{n:"Mercadona"}, casa:{n:"Tu casa, con tus manos"}
 };
 // p = precio para ordenar (el mínimo del rango) · est = precio por confirmar
 const ITEMS = [
@@ -204,7 +207,7 @@ const ITEMS = [
  {n:"Camiseta ligerísima escote barco – Tezenis", c:"ropa", p:11.99, pl:"11,99 €", art:"tee", c1:"#f6efe6", c2:"#b9a998", w:["tezenis"], q:"Ligerísima, como mi fuerza de voluntad delante de los turrones."},
  {n:"CeraVe Loción Hidratante", c:"piel", p:12, pl:"12–15 €", sub:"aprox.", art:"pump", c1:"#ffffff", c2:"#2f6db5", w:["farm","primor","amazon"], q:"Hidratación de farmacia: seria, aburrida y totalmente necesaria."},
  {n:"Zara Delicate Metals Eye Gloss", c:"maqui", p:12.95, pl:"≈ 13 €", est:1, art:"gloss", c1:"#d8c29a", c2:"#8a7350", w:["zara"], q:"Mirada metálica, nivel bola de Navidad."},
- {n:"Crema Hada Labo", c:"piel", p:14, pl:"≈ 14 €", est:1, sub:"falta elegir versión", art:"jar", c1:"#ffffff", c2:"#d0115e", w:["primor","amazon"], q:"Hidratación japonesa. Os diré cuál quiero en cuanto me decida (o sea, nunca)."},
+ {n:"Hada Labo: la crema o cualquier producto de la marca", c:"piel", p:10, pl:"≈ 10–20 €", est:1, sub:"me vale cualquiera", art:"jar", c1:"#ffffff", c2:"#d0115e", w:["primor","amazon"], q:"Cualquier cosa de Hada Labo me hace feliz. Más fácil no os lo puedo poner."},
  {n:"Lush Yog Nog", c:"lush", p:10, pl:"≈ 10 €", est:1, sub:"precio variable", art:"soap", c1:"#e8c77a", c2:"#8a5a2b", w:["lush"], q:"Huele a galleta navideña. Prometo no darle un mordisco."},
  {n:"Lush Snow Fairy (gel, crema o lo que sea)", c:"lush", p:12, pl:"≈ 12 €", est:1, sub:"precio variable", art:"tube", c1:"#f7a8d0", c2:"#c2577a", w:["lush"], q:"Huele a chuche rosa. Es oficialmente mi personalidad en diciembre."},
  {n:"Camiseta ligerísima escote pico con encaje – Tezenis", c:"ropa", p:15, pl:"15–20 €", sub:"aprox.", art:"tee", lace:1, c1:"#e7d6f0", c2:"#8f6aa8", w:["tezenis"], q:"Encaje, porque una también tiene su lado elegante los martes."},
@@ -217,13 +220,18 @@ const ITEMS = [
  {n:"Sol de Janeiro Intense", c:"perfume", p:38, pl:"≈ 38 €", est:1, art:"spray", c1:"#f4a6a0", c2:"#c9932f", w:["sephora","eci"], q:"Oler a playa de Brasil mientras fuera hace 3 grados."},
  {n:"Lush Yuzu Cheesecake Body Spray", c:"lush", p:40, pl:"40 €", art:"spray", c1:"#f3e27a", c2:"#2b2b2b", w:["lush"], q:"Un postre que no engorda. Por fin."},
  {n:"Aceite Kérastase", c:"pelo", p:40, pl:"40–55 €", sub:"aprox.", art:"oil", c1:"#d6a640", c2:"#2b2b2b", w:["sephora","eci","primor"], q:"Pelo de anuncio. El ventilador para el efecto viento lo pongo yo."},
- {n:"Prenda Project X Paris (ref. B2596-OG)", c:"ropa", p:60, pl:"≈ 60 €", est:1, sub:"mirad la talla y el precio en el enlace", art:"hoodie", c1:"#2b2b2b", c2:"#e8e8e8", w:[], link:"https://www.projectxparis.com/es/products/b2596-og?variant=55743479841148", linkName:"Project X Paris", q:"Para ir por la calle como si tuviera un grupo de música."},
+ {n:"Bolso marrón – Project X Paris", c:"ropa", p:60, pl:"≈ 60 €", est:1, sub:"mirad el precio en el enlace", art:"bag", c1:"#7b4a2b", c2:"#c9965a", w:[], link:"https://www.projectxparis.com/es/products/b2596-og?variant=55743479841148", linkName:"Project X Paris", q:"Para llevar dentro todos los turrones de esta lista."},
+ {n:"Loción anticaída Kérastase", c:"pelo", p:45, pl:"≈ 45–60 €", est:1, art:"dropper", c1:"#2b2b2b", c2:"#c99a3b", w:["sephora","eci","primor"], q:"Para que mi pelo se quede en mi cabeza y no en el desagüe."},
+ {n:"Turrón de cheesecake (tableta)", c:"dulce", p:4, pl:"≈ 4–6 €", est:1, art:"turron", c1:"#f7e3a8", c2:"#c22d48", w:["super","eci"], q:"Turrón y tarta de queso a la vez. Ya no hace falta elegir."},
+ {n:"Galleta de pepitas de chocolate de Fermento", c:"dulce", p:3, pl:"≈ 3 €", est:1, art:"cookie", c1:"#d9a05b", c2:"#4a2e1a", w:["fermento"], q:"Una galleta. Una. Bueno, si traes dos tampoco me enfado."},
+ {n:"Pijama de Harry Potter – Primark", c:"hp", p:12, pl:"≈ 12–20 €", est:1, art:"pajama", c1:"#7f0909", c2:"#d4a017", w:["primark"], q:"Para dormir como una bruja de Gryffindor. O de Slytherin, según el día."},
+ {n:"Botox en la frente", c:"aparte", p:200, pl:"≈ 200–300 €", est:1, sub:"zona de la frente, en clínica", art:"syringe", c1:"#dfe9f2", c2:"#3f8fe0", w:["clinica"], q:"Para que no se me note la cara de sorpresa al abrir los regalos."},
  {n:"Botines FREE ALASK marrón – Mustang", c:"ropa", p:70, pl:"≈ 70 €", est:1, art:"boot", c1:"#7b4a2b", c2:"#3a2414", w:["zalando","eci"], q:"Botines para pisar fuerte en 2027."},
  {n:"Burberry Her", c:"perfume", p:75, pl:"≈ 75 €", est:1, sub:"depende del tamaño", art:"perfume", c1:"#f1b6c6", c2:"#5a3b2a", w:["sephora","primor","druni","eci"], q:"Elegancia londinense para ir al Mercadona."},
  {n:"Micrófonos", c:"tech", p:90, pl:"≈ 90 €", est:1, sub:"para grabar vídeos", art:"mic", c1:"#3a3a3a", c2:"#9aa5ad", w:["amazon","mm"], q:"Para que se me oiga más. Sí, todavía más."},
  {n:"Proyector Xiaomi", c:"tech", p:150, pl:"150–250 €", sub:"presupuesto", art:"projector", c1:"#f2f2f2", c2:"#3a3a3a", w:["mi","mm","amazon"], q:"Cine en casa. Las palomitas las pones tú."},
  {n:"DaVinci Resolve Studio (la aplicación)", c:"tech", p:295, pl:"295 €", sub:"licencia de por vida, aprox.", art:"software", c1:"#20232a", c2:"#e94e4e", w:["bmd"], q:"Para editar lo que grabe con la cámara de abajo. Todo encaja, ¿veis?"},
- {n:"Insta360 Luna Ultra Creator Bundle – Negro", c:"tech", p:929, pl:"929 €", sub:"aprox.", art:"camera", c1:"#1d1d1f", c2:"#7ab8d9", w:["insta"], q:"Para grabar mi vida como si fuera un documental. Se aceptan colectas familiares."}
+ {n:"Insta360 Luna Ultra Creator Bundle – Negro", c:"tech", p:465, pl:"≈ 465 €", sub:"regalo a medias: pagáis la mitad y el resto lo pongo yo (cuesta unos 929 €)", art:"camera", c1:"#1d1d1f", c2:"#7ab8d9", w:["insta"], q:"Regalo a medias: vosotros ponéis la mitad, yo la otra, y la cámara entera para mí. Negocio redondo."}
 ];
 
 /* ---------- dibujos ---------- */
@@ -257,6 +265,11 @@ function art(t, a, b, lace){
   case "mic": return s(`<rect x="46" y="14" width="28" height="48" rx="14" fill="${a}"/>${[24,32,40,48].map(y=>`<path d="M50 ${y} H70" stroke="${b}" stroke-width="2"/>`).join("")}<path d="M38 46 Q38 76 60 76 Q82 76 82 46" fill="none" stroke="${b}" stroke-width="4"/><rect x="57" y="76" width="6" height="22" fill="${b}"/><rect x="40" y="98" width="40" height="7" rx="3" fill="${a}"/>`);
   case "candle": return s(`<rect x="34" y="50" width="52" height="54" rx="8" fill="${a}" stroke="#0002"/><ellipse cx="60" cy="50" rx="26" ry="6" fill="#fff8ea"/><rect x="34" y="70" width="52" height="16" fill="${b}"/><rect x="59" y="34" width="2" height="14" fill="#333"/><path d="M60 16 q9 12 0 20 q-9 -8 0 -20" fill="#ffb02e"/><path d="M60 24 q4 6 0 10 q-4 -4 0 -10" fill="#fff3b0"/>`);
   case "diffuser": return s(`<path d="M50 20 L56 64 M60 16 L60 64 M70 20 L64 64" stroke="#5a3b2a" stroke-width="2.5"/><rect x="40" y="62" width="40" height="42" rx="10" fill="${a}" opacity=".9" stroke="#0002"/><rect x="52" y="56" width="16" height="8" fill="${b}"/><rect x="46" y="76" width="28" height="14" rx="2" fill="#fff" opacity=".85"/><circle cx="26" cy="48" r="9" fill="#c98a4b"/><circle cx="23" cy="45" r="1.6" fill="#5a3b2a"/><circle cx="29" cy="50" r="1.6" fill="#5a3b2a"/><circle cx="94" cy="36" r="8" fill="#c98a4b"/><circle cx="92" cy="34" r="1.5" fill="#5a3b2a"/><circle cx="97" cy="38" r="1.5" fill="#5a3b2a"/>`);
+  case "bag": return s(`<path d="M42 50 Q42 22 60 22 Q78 22 78 50" fill="none" stroke="${b}" stroke-width="6" stroke-linecap="round"/><path d="M26 50 H94 L88 104 H32 Z" fill="${a}"/><path d="M26 50 H94 L92 66 Q60 76 28 66Z" fill="#000" opacity=".15"/><rect x="54" y="64" width="12" height="10" rx="2" fill="${b}"/><path d="M36 96 H84" stroke="${b}" stroke-width="1.5" stroke-dasharray="3 3"/>`);
+  case "turron": return s(`<rect x="18" y="46" width="84" height="40" rx="5" fill="${a}" stroke="#0002"/>${[0,1,2,3].map(i=>`<path d="M${39+i*21} 46 V86" stroke="#0001" stroke-width="2"/>`).join("")}<path d="M18 46 h84 v10 q-10 -4 -21 2 q-10 -6 -21 0 q-10 -6 -21 0 q-10 -6 -21 -2Z" fill="${b}"/><rect x="18" y="80" width="84" height="6" rx="2" fill="#c98a4b"/><rect x="10" y="88" width="100" height="8" rx="3" fill="#f2c14e"/>`);
+  case "cookie": return s(`<circle cx="60" cy="64" r="38" fill="${a}"/><circle cx="60" cy="64" r="38" fill="none" stroke="#b07e45" stroke-width="3"/>${[[44,48],[70,46],[56,64],[80,70],[42,76],[64,86],[34,62],[74,58]].map(([x,y],i)=>`<path d="M${x} ${y} l5 -2 3 5 -6 3z" fill="${b}"/>`).join("")}<path d="M90 40 a38 38 0 0 1 8 18 l-10 -2z" fill="${a}" opacity=".0"/>`);
+  case "pajama": return s(`<path d="M36 22 L50 18 Q60 26 70 18 L84 22 L96 46 L86 52 L80 42 L80 64 L40 64 L40 42 L34 52 L24 46 Z" fill="${a}"/><path d="M40 64 H80 L84 106 H64 L60 80 L56 106 H36 Z" fill="${a}"/><path d="M40 64 H80" stroke="${b}" stroke-width="4"/>${[[50,34],[70,40],[56,52],[48,84],[72,92]].map(([x,y])=>`<path d="M${x} ${y-4} l1.5 3 3 .3-2.3 2 .8 3-3-1.6-3 1.6.8-3-2.3-2 3-.3z" fill="${b}"/>`).join("")}<path d="M60 26 V60" stroke="${b}" stroke-width="2"/>`);
+  case "syringe": return s(`<g transform="rotate(-35 60 60)"><rect x="50" y="26" width="20" height="56" rx="3" fill="${a}" stroke="#7a8a99" stroke-width="2"/><rect x="52" y="52" width="16" height="28" fill="${b}" opacity=".5"/>${[34,42,50,58,66].map(y=>`<path d="M50 ${y} h6" stroke="#7a8a99" stroke-width="1.5"/>`).join("")}<rect x="44" y="20" width="32" height="6" rx="2" fill="#7a8a99"/><rect x="57" y="8" width="6" height="14" fill="#7a8a99"/><rect x="50" y="4" width="20" height="5" rx="2" fill="#7a8a99"/><rect x="58" y="82" width="4" height="8" fill="#7a8a99"/><rect x="59.3" y="90" width="1.4" height="18" fill="#7a8a99"/></g><path d="M92 26 l3 6 6 1-5 4 1 6-5-3-5 3 1-6-5-4 6-1z" fill="#f2c14e"/>`);
   case "camera": return s(`<rect x="42" y="14" width="36" height="88" rx="12" fill="${a}"/><circle cx="60" cy="34" r="12" fill="#444"/><circle cx="60" cy="34" r="7" fill="${b}"/><circle cx="57" cy="31" r="2" fill="#fff" opacity=".8"/><rect x="48" y="54" width="24" height="28" rx="3" fill="#2f3a45"/><circle cx="60" cy="92" r="4" fill="#c22d48"/><path d="M84 40 l6-3 M84 50 h7 M84 60 l6 3" stroke="#f2c14e" stroke-width="2.5" stroke-linecap="round"/>`);
   }
   return s("");
@@ -298,7 +311,7 @@ const HATS = {
   reyes:`<path d="M60 84 L62 40 L81 62 L100 30 L119 62 L138 40 L140 84Z" fill="#f2c14e" stroke="#b8860b" stroke-width="2"/><circle cx="100" cy="30" r="5" fill="#f2c14e" stroke="#b8860b" stroke-width="2"/><circle cx="100" cy="66" r="6" fill="#c22d48"/><circle cx="78" cy="74" r="4" fill="#2f6db5"/><circle cx="122" cy="74" r="4" fill="#3fae6a"/>`,
   cumple:`<path d="M72 80 L102 10 L128 78Z" fill="#7f3fa8"/><path d="M84 56 L118 52 M93 36 L112 34" stroke="#f2c14e" stroke-width="5"/><circle cx="102" cy="10" r="8" fill="#ff6b84"/>`
 };
-const avatarSvg = (k)=> avatar.replace("__HAT__", HATS[k]);
+const avatarSvg = (k)=> avatar.replace("__HAT__", HATS[k] || HATS.noel);
 const avatar = `<svg viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mi avatar con la lista de regalos">
   <ellipse cx="100" cy="224" rx="70" ry="6" fill="#000" opacity=".12"/>
   <path d="M40 120 Q30 200 50 215 L150 215 Q170 200 160 120Z" fill="#5a3522"/>
@@ -403,6 +416,10 @@ const OCC = {
     lead:"Sé que venís de muy lejos y que los camellos se cansan. Por eso os dejo la carta <b>ordenada por precio</b>, para que no tengáis que pensar mucho. Os dejaré turrón a vosotros y agua a los camellos.",
     me:"¡Hola, Majestades! Os he dejado turrón 👑",
     row:[["elf",0],["king","#7f3fa8","#f5c3a8","#f4f1ec"],["king","#1f5a3d","#f1c0a2","#7b4a2b"],["camel"],["king","#c22d48","#7a4a2b","#1b1b1b"],["elf",1],["gnome","#2f6db5"]]},
+  amigo:{kicker:"🎁 Amigo invisible · de parte de Papá Noel", h1:"¿Te ha tocado <em>yo</em>?", max:30,
+    lead:"¡Enhorabuena! Te ha tocado la mejor persona del sorteo. Aquí solo salen los regalos de <b>30 € o menos</b>, para que no te arruines. Si no sabes cuál elegir, pulsa el botón del duende.",
+    me:"¡Shhh! No digas a nadie que te ha tocado yo 🤫",
+    row:[["elf",1],["gnome","#c22d48"],["santa"],["elf",0],["gnome","#d9a521"],["elf",2]]},
   cumple:{kicker:"🎂 Mi cumpleaños", h1:"¡Es mi <em>cumpleaños</em>!",
     lead:"Sí, para el cumple también hay carta. Cualquier regalo de aquí me hace ilusión, pero los <b>hechos a mano cuentan el doble</b>. Se aceptan tartas, globos y canciones desafinadas.",
     me:"¡Es mi cumple! Soplo velas y pido regalos 🎂",
@@ -433,8 +450,9 @@ function setOcc(k){
   document.getElementById("gnomeRow").innerHTML = o.row.map(pal).join("");
   document.querySelectorAll(".occ").forEach(a=>a.setAttribute("aria-current", a.id==="o-"+occ ? "page" : "false"));
   document.querySelector(".lights").hidden = occ==="cumple";
+  if (window._ready) render();
 }
-const hashToOcc = {"#papa-noel":"noel","#reyes":"reyes","#cumple":"cumple"};
+const hashToOcc = {"#papa-noel":"noel","#amigo-invisible":"amigo","#reyes":"reyes","#cumple":"cumple"};
 const fromHash = ()=> setOcc(hashToOcc[location.hash] || "noel");
 addEventListener("hashchange", fromHash);
 fromHash();
@@ -484,7 +502,8 @@ function card(it){
 }
 
 function render(){
-  let items = ITEMS.filter(i => cat==="all" || i.c===cat);
+  const max = OCC[occ].max ?? Infinity;
+  let items = ITEMS.filter(i => (cat==="all" || i.c===cat) && i.p <= max && !(max<Infinity && i.c==="aparte"));
   const byPrice = (a,b)=> a.p-b.p || a.n.localeCompare(b.n,"es");
   items.sort(sort==="desc" ? (a,b)=>byPrice(b,a) : byPrice);
   let groups = [];
@@ -492,8 +511,9 @@ function render(){
     groups = CATS.map(c=>({t:c.n, s:"", list:items.filter(i=>i.c===c.id)}));
   } else {
     const order = sort==="desc" ? [...tiers].reverse() : tiers;
-    groups = order.map(t=>({t, s:"", list:items.filter(i=>tier(i.p)[0]===t)}));
+    groups = order.map(t=>({t, s:"", list:items.filter(i=>i.c!=="aparte" && tier(i.p)[0]===t)}));
     groups.forEach(g=>{ const x = ITEMS.find(i=>tier(i.p)[0]===g.t); if (x) g.s = tier(x.p)[1]; });
+    groups.push({t:"Aparte", s:"con cita previa", list:items.filter(i=>i.c==="aparte")});
   }
   groups = groups.filter(g=>g.list.length);
   document.getElementById("list").innerHTML = groups.map(g=>`
@@ -516,15 +536,16 @@ document.getElementById("chips").addEventListener("click",e=>{
 document.getElementById("pick").addEventListener("click",()=>{
   cat="all"; document.querySelectorAll("[data-cat]").forEach(x=>x.setAttribute("aria-pressed", x.dataset.cat==="all"));
   render();
-  const i = Math.floor(Math.random()*ITEMS.length);
-  const el = document.querySelector(`.card[data-i="${i}"]`);
-  if (!el) return;
+  const cards = [...document.querySelectorAll(".card")];
+  if (!cards.length) return;
+  const el = cards[Math.floor(Math.random()*cards.length)];
   el.classList.add("picked");
   el.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"});
 });
 const total = ITEMS.length, free = ITEMS.filter(i=>i.p===0).length;
 document.getElementById("stats").innerHTML =
-  `<div class="stat"><b>${total}</b> deseos</div><div class="stat"><b>${free}</b> gratis y hechos con cariño</div><div class="stat"><b>${ITEMS.filter(i=>i.p>0&&i.p<15).length}</b> por menos de 15 €</div><div class="stat">El más caro: <b>929 €</b> (sin presión)</div>`;
+  `<div class="stat"><b>${total}</b> deseos</div><div class="stat"><b>${free}</b> gratis y hechos con cariño</div><div class="stat"><b>${ITEMS.filter(i=>i.p>0&&i.p<15).length}</b> por menos de 15 €</div><div class="stat">La cámara: <b>a medias</b> (sin presión)</div>`;
+window._ready = true;
 render();
 
 /* ---------- nieve ---------- */
